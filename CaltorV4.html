@@ -1,0 +1,2821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Nutrition Calculator</title>
+    <style>
+        /* BASE STYLES & THEME FROM BACKBONE */
+        :root {
+            --background: #ffffff;
+            --foreground: #1e2630;
+            --card: #ffffff;
+            --card-foreground: #1e2630;
+            --primary: #4A90E2;
+            --primary-foreground: #ffffff;
+            --secondary: #f0f4f9;
+            --secondary-foreground: #475569;
+            --muted: #f1f5f9;
+            --muted-foreground: #64748b;
+            --accent: #38B2AC;
+            --accent-foreground: #ffffff;
+            --destructive: #ef4444;
+            --destructive-foreground: #f8fafc;
+            --border: #e2e8f0;
+            --input: #edf2f7;
+            --ring: #4A90E2;
+            --radius: 0.75rem; /* Slightly larger radius for a softer look */
+        }
+
+        .dark {
+            --background: #1e293b;
+            --foreground: #e2e8f0;
+            --card: #2a3649;
+            --card-foreground: #e2e8f0;
+            --primary: #60a5fa;
+            --primary-foreground: #020617;
+            --secondary: #334155;
+            --secondary-foreground: #cbd5e1;
+            --muted: #475569;
+            --muted-foreground: #94a3b8;
+            --accent: #4ade80;
+            --accent-foreground: #020617;
+            --destructive: #ef4444;
+            --destructive-foreground: #f1f5f9;
+            --border: #475569;
+            --input: #3e4c62;
+            --ring: #60a5fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 768px;
+            }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--foreground);
+        }
+        
+        h2.calculator-heading, #naCalculator h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--foreground);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--foreground);
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .tabs::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+
+        .tab {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: var(--muted-foreground);
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- REFINED MODAL STYLES --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background-color: var(--card);
+            color: var(--card-foreground);
+            border-radius: var(--radius);
+            max-width: 95%;
+            width: 550px; /* Wider for better readability */
+            margin: 2rem auto;
+            animation: slideUp 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 4rem);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .modal-header h2 {
+             font-size: 1.25rem;
+             font-weight: 600;
+        }
+        .modal-header h3 {
+             font-size: 1.15rem;
+             font-weight: 600;
+        }
+        .modal-header p {
+            font-size: 0.9rem;
+            color: var(--muted-foreground);
+        }
+
+        .modal-body {
+            padding: 1.25rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background-color: var(--secondary);
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
+        }
+        
+        .modal-footer .btn, .modal-footer .close-button, .modal-footer .edit-button, .modal-footer .save-button {
+             border: none;
+             padding: 0.6rem 1.2rem;
+             border-radius: var(--radius);
+             cursor: pointer;
+             font-weight: 500;
+             transition: background-color 0.2s, color 0.2s, transform 0.1s;
+        }
+         .modal-footer .btn:hover, .modal-footer .close-button:hover, .modal-footer .edit-button:hover, .modal-footer .save-button:hover {
+             filter: brightness(95%);
+         }
+         .modal-footer .btn:active, .modal-footer .close-button:active, .modal-footer .edit-button:active, .modal-footer .save-button:active {
+            transform: scale(0.97);
+         }
+
+        .modal-footer .edit-button, .modal-footer .close-button, .modal-footer .btn {
+            background-color: var(--muted);
+            color: var(--muted-foreground);
+        }
+        
+        .modal-footer .save-button {
+             background-color: var(--primary);
+             color: var(--primary-foreground);
+        }
+        
+        #confirmationModal .modal-content {
+             width: 400px;
+        }
+
+
+        /* --- GENERAL UTILITY STYLES --- */
+         .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted-foreground);
+        }
+
+        input[type="search"], .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: var(--input);
+            color: var(--foreground);
+            font-size: 0.875rem;
+        }
+        
+        .supplement-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .supplement-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .supplement-item:hover {
+            background: var(--secondary);
+        }
+
+        .supplement-item:last-child {
+            border-bottom: none;
+        }
+
+        .supplement-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--card-foreground);
+        }
+
+        .supplement-details {
+            font-size: 12px;
+            color: var(--muted-foreground);
+        }
+        
+        .separator {
+            height: 1px;
+            background-color: var(--border);
+            margin: 1rem 0;
+        }
+        
+        /* Styles for input rows */
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .input-row:last-child {
+             border-bottom: none;
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            color: var(--foreground);
+        }
+        
+        .input-label .icon {
+             width: 24px;
+             height: 24px;
+             margin-right: 8px;
+             text-align: center;
+             font-size: 20px;
+        }
+
+        .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-controls .btn, .input-button {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--foreground);
+        }
+        .input-controls .btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .input-value {
+            min-width: 48px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .unit {
+            font-size: 12px;
+            color: var(--muted-foreground);
+            margin-left: 4px;
+        }
+        
+        .calculation-basis-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: var(--input);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+        .calculation-basis-control button {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            color: var(--secondary-foreground);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+         .calculation-basis-control button:hover {
+            background-color: var(--muted);
+         }
+        .calculation-basis-control span {
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+
+        /* --- STYLES FOR NUTRIENT BROWSER & CALCULATOR TABS --- */
+        #nutrientBrowser .card, #caltor .card, #naCalculator .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background-color: var(--card);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        #nutrientBrowser .card:not(.non-clickable):active, #caltor .card:not(.non-clickable):active, #naCalculator .card:not(.non-clickable):active {
+            transform: scale(0.98);
+        }
+        #nutrientBrowser .card:not(.non-clickable), #caltor .card:not(.non-clickable) {
+             cursor: pointer;
+        }
+        #nutrientBrowser .card-content, #caltor .card-content, #naCalculator .card-content {
+            padding: 1rem;
+        }
+        #nutrientBrowser .card-flex-content {
+            display: flex;
+            justify-content: space-between;
+        }
+        #nutrientBrowser .card-left, #caltor .card-left { flex: 1; }
+        #nutrientBrowser .card-title, #caltor .card-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--card-foreground);
+        }
+        #nutrientBrowser .card-subtitle, #caltor .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0.5rem;
+        }
+        #nutrientBrowser .badge, #caltor .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: var(--radius);
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+        }
+        #nutrientBrowser .card-right, #caltor .card-right { text-align: right; }
+        #nutrientBrowser .energy-value, #caltor .energy-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        #nutrientBrowser .energy-unit, #caltor .energy-unit {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+        }
+        #nutrientBrowser .per-serving, #nutrientBrowser .macros, 
+        #caltor .per-serving, #caltor .macros {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            margin-top: 0.25rem;
+        }
+        #nutrientBrowser .custom-select-container, #caltor .custom-select-container { position: relative; }
+        #nutrientBrowser .custom-select-display, #caltor .custom-select-display {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius);
+            background-color: var(--input); color: var(--foreground); font-size: 0.875rem;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        #nutrientBrowser .custom-select-popup, #caltor .custom-select-popup {
+            display: none; position: absolute; top: 100%; left: 0; right: 0;
+            z-index: 10; border: 1px solid var(--border); border-radius: var(--radius);
+            background-color: var(--card); margin-top: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #nutrientBrowser .custom-select-popup .search-container, #caltor .custom-select-popup .search-container { margin: 8px; }
+        #nutrientBrowser .custom-select-list, #caltor .custom-select-list { max-height: 250px; overflow-y: auto; }
+        #nutrientBrowser .custom-select-item, #caltor .custom-select-item { padding: 0.75rem 1rem; cursor: pointer; }
+        #nutrientBrowser .custom-select-item:hover, #caltor .custom-select-item:hover { background-color: var(--secondary); }
+        #nutrientBrowser .custom-select-item-title, #caltor .custom-select-item-title { font-weight: 500; }
+        #nutrientBrowser .custom-select-item-subtitle, #caltor .custom-select-item-subtitle { font-size: 0.75rem; color: var(--muted-foreground); }
+        #nutrientBrowser .calculator-section, #caltor .calculator-section { margin-bottom: 1.5rem; }
+        #nutrientBrowser select, #caltor select {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius);
+            background-color: var(--input); color: var(--foreground); font-size: 0.875rem; margin-bottom: 1rem;
+        }
+        #caltor .input-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+        #caltor .input-label { color: var(--muted-foreground); font-size: 0.875rem; }
+        #nutrientBrowser input[type="number"], #caltor input[type="number"], #naCalculator input[type="number"] {
+            width: 5rem; padding: 0.5rem; text-align: center; border: 1px solid var(--border); border-radius: var(--radius);
+            background-color: var(--input); color: var(--foreground); -moz-appearance: textfield;
+        }
+        #nutrientBrowser input[type="number"]::-webkit-outer-spin-button, #nutrientBrowser input[type="number"]::-webkit-inner-spin-button, 
+        #caltor input[type="number"]::-webkit-outer-spin-button, #caltor input[type="number"]::-webkit-inner-spin-button,
+        #naCalculator input[type="number"]::-webkit-outer-spin-button, #naCalculator input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #nutrientBrowser .input-unit, #caltor .input-unit { color: var(--muted-foreground); font-size: 0.75rem; min-width: 2rem; text-align: right; }
+        #nutrientBrowser .results-table, #caltor .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        #nutrientBrowser .results-table th, #caltor .results-table th {
+            text-align: left; padding: 0.75rem; background-color: var(--secondary);
+            color: var(--secondary-foreground); font-weight: 600;
+        }
+        #nutrientBrowser .results-table th:last-child, #caltor .results-table th:last-child { text-align: right; }
+        #nutrientBrowser .results-table td, #caltor .results-table td { padding: 0.75rem; border-bottom: 1px solid var(--border); }
+        #nutrientBrowser .results-table td:last-child, #caltor .results-table td:last-child { text-align: right; font-weight: 500; }
+        #nutrientBrowser .even-row, #caltor .even-row { background-color: var(--background); }
+        #nutrientBrowser .odd-row, #caltor .odd-row { background-color: var(--secondary); }
+        #nutrientBrowser .summary, #caltor .summary {
+            padding: 1rem; background-color: var(--secondary); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem;
+        }
+        #nutrientBrowser .summary-title, #caltor .summary-title { font-weight: 600; margin-bottom: 0.5rem; }
+        #nutrientBrowser .summary-text, #caltor .summary-text { color: var(--muted-foreground); font-size: 0.875rem; }
+        
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 0.75rem 0.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .grid-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            color: var(--muted-foreground);
+        }
+        .value {
+            font-weight: 500;
+            text-align: right;
+        }
+        
+        #nutrientBrowser .edit-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        #nutrientBrowser .edit-form-row label {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+        }
+        
+        #nutrientBrowser .edit-form-row input {
+             width: 100%;
+             padding: 0.5rem;
+             border: 1px solid var(--border);
+             border-radius: var(--radius);
+             background-color: var(--input);
+             color: var(--foreground);
+        }
+        
+        #nutrientBrowser .edit-form-basis {
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 0.5rem;
+            background-color: var(--muted);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+
+
+        /* --- STYLES FOR CKD, MEAL PLAN & NaCAL TABS --- */
+        #ckdPlanner .sticky-header, #mealPlan .sticky-header {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--card);
+            color: var(--card-foreground);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: var(--radius); margin-bottom: 12px;
+        }
+
+        #ckdPlanner .header-primary, #mealPlan .header-primary {
+            background: var(--primary); color: var(--primary-foreground);
+            padding: 12px; text-align: center; border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        #ckdPlanner .header-secondary, #mealPlan .header-secondary {
+            background: color-mix(in srgb, var(--primary) 80%, black); color: var(--primary-foreground);
+            padding: 12px; text-align: center; font-size: 14px; border-radius: 0 0 var(--radius) var(--radius);
+        }
+
+        #ckdPlanner .card, #mealPlan .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #ckdPlanner .accordion-header, #mealPlan .accordion-header, #naCalculator .accordion-header {
+            padding: 12px 16px; cursor: pointer; background: var(--secondary);
+            border-radius: var(--radius); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; user-select: none;
+        }
+         #naCalculator .accordion-header { border-radius: var(--radius) var(--radius) 0 0; }
+
+        #ckdPlanner .accordion-header:hover, #mealPlan .accordion-header:hover, #naCalculator .accordion-header:hover {
+            background: var(--muted);
+        }
+        #ckdPlanner .accordion-header.open, #mealPlan .accordion-header.open, #naCalculator .accordion-header.open {
+            background: color-mix(in srgb, var(--primary) 10%, transparent);
+        }
+        #ckdPlanner .accordion-content, #mealPlan .accordion-content, #naCalculator .accordion-content {
+            padding: 16px; display: none;
+        }
+        #ckdPlanner .accordion-content.show, #mealPlan .accordion-content.show, #naCalculator .accordion-content.show {
+            display: block;
+        }
+
+        #ckdPlanner .chevron, #mealPlan .chevron, #naCalculator .chevron {
+            width: 16px; height: 16px; transform: rotate(0deg); transition: transform 0.2s;
+        }
+        #ckdPlanner .chevron.open, #mealPlan .chevron.open, #naCalculator .chevron.open {
+            transform: rotate(180deg);
+        }
+
+        #ckdPlanner .radio-group, #mealPlan .radio-group, #naCalculator .radio-group {
+            display: flex; gap: 1rem; margin-bottom: 1rem;
+            flex-direction: column;
+        }
+        @media (min-width: 640px) {
+             #naCalculator .radio-group { flex-direction: row; }
+        }
+        #ckdPlanner .radio-option, #mealPlan .radio-option, #naCalculator .radio-option {
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+        }
+        #ckdPlanner .radio-input, #mealPlan .radio-input, #naCalculator .radio-input {
+            width: 16px; height: 16px;
+        }
+        
+        #ckdPlanner .dialysate-row {
+            display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+            gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border);
+        }
+        #ckdPlanner .dialysate-label {
+            display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--muted-foreground);
+        }
+        #ckdPlanner .volume-btn {
+            background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+            padding: 4px 8px; font-size: 12px; cursor: pointer;
+        }
+         #ckdPlanner .volume-btn:hover { background: var(--secondary); }
+        
+        #ckdPlanner .supplement-btn, #mealPlan .supplement-btn {
+            width: 100%; background: var(--input); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 8px 12px; text-align: left;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+        }
+        #ckdPlanner .supplement-btn:hover, #mealPlan .supplement-btn:hover {
+            background: var(--muted);
+        }
+
+        #ckdPlanner .footer-info, #mealPlan .footer-info {
+            background: var(--secondary); color: var(--secondary-foreground);
+            padding: 16px; margin-top: 16px; border-radius: var(--radius);
+            font-size: 12px; text-align: center; line-height: 1.6;
+        }
+
+        .planner-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .planner-controls .btn {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 6px 12px;
+            font-size: 12px; cursor: pointer; 
+        }
+
+        
+        #mealPlan #peri-supplement-nutrition-info {
+            text-align: right; font-size: 14px; font-weight: 500; color: var(--primary); padding-top: 8px;
+        }
+
+        /* --- Na Calculator Specific Styles --- */
+        #naCalculator .value-input-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        #naCalculator .value-input-row:last-child {
+             border-bottom: none;
+        }
+
+        #naCalculator .value-input-row .label {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            white-space: nowrap;
+        }
+
+        #naCalculator .value-input-row .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+         #naCalculator .value-input-row .input-controls input {
+            width: 100%;
+            flex-grow: 1;
+         }
+
+        #naCalculator .result-box {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            background-color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+        #naCalculator .result-box .label {
+            font-weight: 600;
+            color: var(--foreground);
+            font-size: 0.875rem;
+        }
+        #naCalculator .result-box .value {
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: left;
+        }
+        #naCalculator .result-box .sub-value {
+             font-size: 0.8rem;
+             color: var(--muted-foreground);
+        }
+        #naCalculator #naStatusMessage {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+            font-weight: 600;
+        }
+        #naCalculator .status-below { background-color: #fff7ed; border-color: #fed7aa; color: #9a3412; } /* orange */
+        #naCalculator .status-within { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; } /* green */
+        #naCalculator .status-above { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; } /* red */
+        
+        #naCalculator .suggestion-box {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            margin-top: 0.5rem;
+        }
+        #naCalculator .suggestion-box .label { font-weight: 600; font-size: 0.875rem; }
+        #naCalculator .suggestion-box .value { font-size: 1.1rem; font-weight: bold; text-align: left;}
+        #naCalculator .suggestion-box .sub-value { font-size: 0.8rem; }
+        #naCalculator .suggestion-box .italic-info { font-size: 0.75rem; font-style: italic; margin-top: 0.25rem; }
+        
+        #naCalculator .deficit-box { background-color: #fff7ed; color: #9a3412; }
+        #naCalculator .addition-box { background-color: #e0f2fe; color: #0369a1; }
+        #naCalculator .total-box { background-color: #f0fdfa; color: #0f766e; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Nutrition Suite</h1>
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="nutrientBrowser">Browser</button>
+            <button class="tab" data-tab="caltor">Caltor</button>
+            <button class="tab" data-tab="naCalculator">Na Cal</button>
+            <button class="tab" data-tab="ckdPlanner">CKD</button>
+            <button class="tab" data-tab="mealPlan">Meal Plan</button>
+        </div>
+
+        <!-- TAB 1: NUTRIENT BROWSER -->
+        <div id="nutrientBrowser" class="tab-content active">
+             <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="search" id="nutrientBrowserSearchInput" placeholder="Search by name or type...">
+            </div>
+            <div id="nutrientBrowserList"></div>
+        </div>
+
+        <!-- TAB 2: NUTRIENT CALCULATOR -->
+        <div id="caltor" class="tab-content">
+            <div class="calculator-section">
+                <h2 class="calculator-heading">Base Formula</h2>
+                <div class="custom-select-container" id="nutrientCalcBaseFormulaContainer">
+                    <div class="custom-select-display" id="nutrientCalcBaseFormulaDisplay">
+                        <span>Select a base supplement...</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="custom-select-popup" id="nutrientCalcBaseFormulaPopup">
+                        <div class="search-container">
+                            <span class="search-icon">🔍</span>
+                            <input type="search" id="nutrientCalcBaseFormulaSearchInput" placeholder="Search for a base formula...">
+                        </div>
+                        <div class="custom-select-list" id="nutrientCalcBaseFormulaList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calculator-section">
+                <h2 class="calculator-heading">Calculate Based On</h2>
+                <select id="nutrientCalcCalculationBasisSelect" style="display: none;">
+                    <option value="volume">Target Volume</option>
+                    <option value="energy">Target Energy</option>
+                    <option value="protein">Target Protein</option>
+                    <option value="serving">Target Serving</option>
+                </select>
+                <div class="calculation-basis-control" id="nutrientCalcBasisControl">
+                    <button id="nutrientCalcBasisPrevBtn">&lt;</button>
+                    <span id="nutrientCalcBasisLabel">Target Volume</span>
+                    <button id="nutrientCalcBasisNextBtn">&gt;</button>
+                </div>
+
+                <div class="input-row">
+                    <span class="input-label">Target Volume</span>
+                    <div class="input-controls">
+                        <button class="input-button" data-action="decrease" data-target="volume">-</button>
+                        <input type="number" id="nutrientCalcVolumeInput" value="1250" min="0" step="50">
+                        <button class="input-button" data-action="increase" data-target="volume">+</button>
+                    </div>
+                    <span class="input-unit">ml</span>
+                </div>
+
+                <div class="input-row">
+                    <span class="input-label">Target Energy</span>
+                    <div class="input-controls">
+                        <button class="input-button" data-action="decrease" data-target="energy">-</button>
+                        <input type="number" id="nutrientCalcEnergyInput" value="1500" min="0" step="100">
+                        <button class="input-button" data-action="increase" data-target="energy">+</button>
+                    </div>
+                    <span class="input-unit">kcal</span>
+                </div>
+
+                <div class="input-row">
+                    <span class="input-label">Target Protein</span>
+                    <div class="input-controls">
+                        <button class="input-button" data-action="decrease" data-target="protein">-</button>
+                        <input type="number" id="nutrientCalcProteinInput" value="50" min="0" step="5">
+                        <button class="input-button" data-action="increase" data-target="protein">+</button>
+                    </div>
+                    <span class="input-unit">g</span>
+                </div>
+
+                <div class="input-row">
+                    <span class="input-label">Target Serving</span>
+                    <div class="input-controls">
+                        <button class="input-button" data-action="decrease" data-target="serving">-</button>
+                        <input type="number" id="nutrientCalcServingInput" value="2" min="0" step="1">
+                        <button class="input-button" data-action="increase" data-target="serving">+</button>
+                    </div>
+                    <span class="input-unit">unit(s)</span>
+                </div>
+            </div>
+
+            <div class="calculator-section">
+                <h2 class="calculator-heading">Modular</h2>
+                <select id="nutrientCalcModularSelect">
+                    <option value="">Nil Modular</option>
+                </select>
+
+                <div class="input-row" id="nutrientCalcModularQuantityRow" style="display: none;">
+                    <span class="input-label">Quantity</span>
+                    <div class="input-controls">
+                        <button class="input-button" data-action="decrease" data-target="modular">-</button>
+                        <input type="number" id="nutrientCalcModularInput" value="1" min="0" step="1">
+                        <button class="input-button" data-action="increase" data-target="modular">+</button>
+                    </div>
+                    <span class="input-unit" id="nutrientCalcModularUnit">serving(s)</span>
+                </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div id="nutrientCalcCalculationResults" style="display: none;">
+                <h2 class="calculator-heading">Calculation Results</h2>
+                <div class="summary">
+                    <div class="summary-title" id="nutrientCalcSummaryTitle">Select a base supplement</div>
+                    <div class="summary-text" id="nutrientCalcSummaryDetails"></div>
+                </div>
+                <table class="results-table">
+                    <thead>
+                        <tr><th>Nutrient</th><th>Value</th></tr>
+                    </thead>
+                    <tbody id="nutrientCalcResultsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: SODIUM CALCULATOR (Na Cal) -->
+        <div id="naCalculator" class="tab-content">
+            <div class="card non-clickable">
+                <div class="card-content space-y-4">
+                    <h2 class="calculator-heading">🧪 Sodium Calculator (Na Cal)</h2>
+                    <p class="summary-text" style="margin-top: -1rem; margin-bottom: 1rem;">Calculate daily sodium requirement and current provision.</p>
+                    
+                    <div class="value-input-row">
+                        <label for="naCalcBodyWeight" class="label">Patient Body Weight</label>
+                        <div class="input-controls">
+                            <button class="btn" data-action="decrease" data-target="bodyWeightKg">-</button>
+                            <input type="number" id="naCalcBodyWeight" value="60" min="0" step="0.5">
+                            <button class="btn" data-action="increase" data-target="bodyWeightKg">+</button>
+                        </div>
+                        <span class="unit">kg</span>
+                    </div>
+
+                    <div class="separator"></div>
+
+                    <div>
+                        <label class="input-label" style="font-weight: 600; margin-bottom: 0.5rem;">Primary Sodium Source</label>
+                        <div class="radio-group" id="naCalcSourceGroup">
+                            <label class="radio-option">
+                                <input type="radio" name="naSource" value="calculatorSetA" class="radio-input" checked>
+                                <span>From Caltor Tab</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="naSource" value="manualNaCl" class="radio-input">
+                                <span>Manual NaCl (mg) Input</span>
+                            </label>
+                        </div>
+                        <div id="naCalcManualInputContainer" style="display: none; margin-top: 0.5rem;">
+                            <div class="value-input-row">
+                                <label for="naCalcManualNaCl" class="label">NaCl Input</label>
+                                <div class="input-controls">
+                                    <button class="btn" data-action="decrease" data-target="manualNaClMg">-</button>
+                                    <input type="number" id="naCalcManualNaCl" value="0" min="0" step="100">
+                                    <button class="btn" data-action="increase" data-target="manualNaClMg">+</button>
+                                </div>
+                                <span class="unit">mg</span>
+                            </div>
+                            <p class="summary-text" style="font-style: italic; font-size: 0.75rem;" id="naCalcManualNaEquivalent">Elemental Na from this source: 0 mg</p>
+                        </div>
+                        <p class="summary-text" style="font-style: italic; font-size: 0.75rem;" id="naCalcFromCaltorInfo">Na from Caltor Tab: 0 mg</p>
+                    </div>
+
+                    <div class="card non-clickable" style="margin: 0;">
+                        <div class="accordion-header" id="naCalcAccordionHeader">
+                            <span>Other Sodium Sources</span>
+                            <span class="chevron" id="naCalcAccordionChevron">▼</span>
+                        </div>
+                        <div class="accordion-content" id="naCalcAccordionContent">
+                            <!-- Other sources will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card non-clickable">
+                <div class="card-content space-y-3">
+                    <h2 class="calculator-heading">Results</h2>
+                    <div class="result-box">
+                        <p class="label">Daily Sodium Requirement:</p>
+                        <p class="value" id="naCalcRequirementMg">0 - 0 mg</p>
+                        <p class="sub-value" id="naCalcRequirementMmol">(0 - 0 mmol)</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="label">Total Sodium Provision:</p>
+                        <p class="value" id="naCalcProvisionMg">0 mg</p>
+                        <p class="sub-value" id="naCalcProvisionMmol">(0 mmol)</p>
+                    </div>
+                    <div id="naStatusMessage">Enter body weight to calculate.</div>
+                    <div id="naSuggestionContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CKD PLANNER -->
+        <div id="ckdPlanner" class="tab-content">
+             <div class="sticky-header">
+                <div class="header-primary">
+                    <div id="ckdMainCalories">1378 Kcal, 47.0g protein</div>
+                </div>
+                <div class="header-secondary">
+                    <div id="ckdExchangeDisplay">5/0/5/2/5/0, 6.0LBV, 5.0HBV, 0pc Eggwhite, 3.0tsp oil</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="accordion-header" onclick="ckdPlannerApp.toggleAccordion('dialysate')">
+                    <div class="input-label"><span class="icon">🧪</span>Dialysate Kcal Calculator</div>
+                    <span class="chevron" id="ckd-dialysate-chevron">▼</span>
+                </div>
+                <div class="accordion-content" id="ckd-dialysate-content">
+                    <div class="radio-group">
+                        <label class="radio-option"><input type="radio" name="dialysisType" value="CAPD" checked class="radio-input" onchange="ckdPlannerApp.changeDialysisType('CAPD')"><span>CAPD</span></label>
+                        <label class="radio-option"><input type="radio" name="dialysisType" value="APD" class="radio-input" onchange="ckdPlannerApp.changeDialysisType('APD')"><span>APD</span></label>
+                    </div>
+                    <div id="ckd-dialysate-inputs"></div>
+                    <div style="text-align: right; font-weight: bold; padding-top: 12px; border-top: 1px solid var(--border);">
+                        Total from Dialysate = <span id="ckd-dialysate-total">0</span> Kcal
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="accordion-header" onclick="ckdPlannerApp.toggleAccordion('global')">
+                    <div class="input-label"><span class="icon">⚙️</span>Global Adjustments</div>
+                    <span class="chevron open" id="ckd-global-chevron">▼</span>
+                </div>
+                <div class="accordion-content show" id="ckd-global-content">
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🥚</span>Egg White</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('eggWhite', -1)">-</button>
+                            <span class="input-value" id="ckdEggWhite">0</span><span class="unit">pieces</span>
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('eggWhite', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🍖</span>Total Meat</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalMeat', -0.5)">-</button>
+                            <span class="input-value" id="ckdTotalMeat">5.0</span><span class="unit">ex</span>
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalMeat', 0.5)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🥕</span>Total Veg</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalVeg', -1)">-</button>
+                            <span class="input-value" id="ckdTotalVeg">2</span><span class="unit">ex</span>
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalVeg', 1)">+</button>
+                        </div>
+                    </div>
+                    <div style="padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 12px 0;">
+                        <div class="input-label" style="margin-bottom: 8px;"><span class="icon">📦</span>Supplement Addition</div>
+                        <button class="supplement-btn" onclick="ckdPlannerApp.openSupplementModal()">
+                            <span id="ckd-selected-supplement">Select Supplement...</span><span>▼</span>
+                        </button>
+                        <div id="ckd-supplement-quantity-row" class="input-row" style="display: none; margin-top: 8px;">
+                            <div class="input-label">Quantity</div>
+                            <div class="input-controls">
+                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', -1)">-</button>
+                                <span class="input-value" id="ckdSupplementQuantity">0</span>
+                                <span class="unit" id="ckd-supplement-unit">servings</span>
+                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">💧</span>Total Oil</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalOil', -1)">-</button>
+                            <span class="input-value" id="ckdTotalOil">3</span><span class="unit">tsp</span>
+                            <button class="btn" onclick="ckdPlannerApp.changeValue('totalOil', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="planner-controls">
+                <button class="btn" onclick="ckdPlannerApp.toggleAllMeals()"><span id="ckd-collapse-text">Collapse All</span></button>
+            </div>
+
+            <div id="ckd-meal-sections"></div>
+
+            <div class="footer-info">
+                <p><strong>Food Group Base Values (per 1 exchange/piece/serving):</strong></p>
+                <p>CHO: 44 kcal, 0.4 LBV | Fruit: 80 kcal (2 CHO eq. for display)</p>
+                <p>Vegetables (Global): 24 kcal/ex | Meat (Global): 75 kcal, 1.0 HBV/ex</p>
+                <p>Oil (Global): 45 kcal/tsp | Egg White: 14 kcal, 3.5g protein/pc</p>
+                <p>Protein from Food Exchanges: (Total LBV ex. × 2g) + (Total HBV ex. × 7g)</p>
+            </div>
+        </div>
+
+        <!-- TAB 5: MEAL PLAN -->
+        <div id="mealPlan" class="tab-content">
+             <div class="sticky-header">
+                <div class="header-primary">
+                    <div id="periMainCalories">0 Kcal, 0g protein</div>
+                </div>
+                <div class="header-secondary">
+                    <div id="periExchangeDisplay">...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="accordion-header" onclick="periPlannerApp.toggleAccordion('global')">
+                    <div class="input-label"><span class="icon">⚙️</span>Global Adjustments</div>
+                    <span class="chevron open" id="peri-global-chevron">▼</span>
+                </div>
+                <div class="accordion-content show" id="peri-global-content">
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🥛</span>Skim Milk</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('skimMilk', -1)">-</button>
+                            <span class="input-value" id="periSkimMilk">0</span><span class="unit">cup</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('skimMilk', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🥩</span>Lean Meat (DM bk)</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('leanMeat', -1)">-</button>
+                            <span class="input-value" id="periLeanMeat">0.0</span><span class="unit">ex</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('leanMeat', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🍖</span>Med.Fat Meat (PERI)</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('medFatMeat', -1)">-</button>
+                            <span class="input-value" id="periMedFatMeat">0.0</span><span class="unit">ex</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('medFatMeat', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🥚</span>Egg White</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('eggWhite', -1)">-</button>
+                            <span class="input-value" id="periEggWhite">0</span><span class="unit">pieces</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('eggWhite', 1)">+</button>
+                        </div>
+                    </div>
+                     <div class="input-row">
+                        <div class="input-label"><span class="icon">🥕</span>Total Veg</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('totalVeg', -1)">-</button>
+                            <span class="input-value" id="periTotalVeg">0</span><span class="unit">ex</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('totalVeg', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">💧</span>Total Oil</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('totalOil', -1)">-</button>
+                            <span class="input-value" id="periTotalOil">0</span><span class="unit">tsp</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('totalOil', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label"><span class="icon">🍬</span>Sugar</div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="periPlannerApp.changeValue('sugar', -1)">-</button>
+                            <span class="input-value" id="periSugar">0</span><span class="unit">frequency</span>
+                            <button class="btn" onclick="periPlannerApp.changeValue('sugar', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div style="padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px;">
+                        <div class="input-label" style="margin-bottom: 8px;"><span class="icon">📦</span>Supplement Addition</div>
+                        <button class="supplement-btn" onclick="periPlannerApp.openSupplementModal()">
+                            <span id="peri-selected-supplement">Select Supplement...</span><span>▼</span>
+                        </button>
+                        <div id="peri-supplement-quantity-row" class="input-row" style="display: none; border-bottom: none; padding-bottom: 0;">
+                             <div class="input-label">Quantity</div>
+                            <div class="input-controls">
+                                <button class="btn" onclick="periPlannerApp.changeValue('supplementQuantity', -1)">-</button>
+                                <span class="input-value" id="periSupplementQuantity">0</span>
+                                <span class="unit" id="peri-supplement-unit">servings</span>
+                                <button class="btn" onclick="periPlannerApp.changeValue('supplementQuantity', 1)">+</button>
+                            </div>
+                        </div>
+                        <div id="peri-supplement-nutrition-info" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="planner-controls">
+                <button class="btn" onclick="periPlannerApp.resetToDefaults()">Reset</button>
+                <button class="btn" onclick="periPlannerApp.toggleAllMeals()"><span id="peri-collapse-text">Collapse All</span></button>
+            </div>
+
+
+            <div id="peri-meal-sections"></div>
+
+            <div class="footer-info">
+                <p><strong>Food Group Base Values (per 1 exchange/piece/serving):</strong></p>
+                <p>CHO: 44 kcal, 1g protein | Fruit: 80 kcal, 0g protein | Veg: 24 kcal, 1g protein</p>
+                <p>Lean Meat: 55 kcal, 7g protein | Med.Fat Meat: 75 kcal, 7g protein</p>
+                <p>Egg White: 14 kcal, 3.5g protein/pc | Skim Milk: 100 kcal, 8g protein/cup</p>
+                <p>Oil: 45 kcal, 0g protein/tsp | Sugar: 100 kcal, 0g protein/frequency</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="nutrientBrowserDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="nutrientBrowserModalTitle">Nutrient Detail</h2>
+                <p id="nutrientBrowserModalSubtitle" class="card-subtitle"></p>
+            </div>
+            <div class="modal-body" id="nutrientBrowserModalBody"></div>
+            <div class="modal-footer" id="nutrientBrowserModalFooter">
+                <button class="edit-button" id="nutrientBrowserEditBtn">Edit Data</button>
+                <button class="close-button" id="nutrientBrowserCloseModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmationModal">
+         <div class="modal-content" style="width: 400px; max-width: 90%;">
+              <div class="modal-header"><h3>Confirm Changes</h3></div>
+              <div class="modal-body">
+                  <p>Are you sure you want to save these changes to the dataset? This action cannot be undone.</p>
+              </div>
+              <div class="modal-footer">
+                   <button class="close-button" id="confirmCancelBtn">Cancel</button>
+                   <button class="save-button" id="confirmSaveBtn">Confirm & Save</button>
+              </div>
+         </div>
+    </div>
+
+    <div class="modal" id="ckd-supplement-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Search Supplement</h3></div>
+            <div class="modal-body">
+                <input type="search" class="search-input" id="ckd-supplement-search" placeholder="Search supplement by name...">
+                <div class="supplement-list" id="ckd-supplement-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="ckdPlannerApp.clearSupplement()">Clear</button>
+                <button class="btn" onclick="ckdPlannerApp.closeSupplementModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="peri-supplement-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Search Supplement</h3></div>
+            <div class="modal-body">
+                <input type="search" class="search-input" id="peri-supplement-search" placeholder="Search supplement by name...">
+                <div class="supplement-list" id="peri-supplement-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="periPlannerApp.clearSupplement()">Clear</button>
+                <button class="btn" onclick="periPlannerApp.closeSupplementModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- SHARED DATA AND FUNCTIONS ---
+
+        // Unified supplement data from CKD planner
+        let supplementData = [
+          {
+            'unique_name': 'Fresubin Original Drink', 'Display_Name': 'Fresubin Original Drink (Van)', 'Display_Name_Chi': '倍力康1千卡', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 38.0, 'CHO': 138.0, 'Fat': 34.0, 'Na (mg)': '750', 'K (mg)': '1250', 'P (mg)': '470', 'Ca (mg)': '600', 'Fibre': '0', 'Osmolality (mOsm/kg)': '380', 'H20': '840.0', 'FOS': 'NA', 'Vit K (ug)': '167', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Isocal HN', 'Display_Name': 'Isocal HN', 'Display_Name_Chi': '愛素寶HN', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1050.0, 'Protein': 44.0, 'CHO': 135.0, 'Fat': 37.0, 'Na (mg)': '1000', 'K (mg)': '1200', 'P (mg)': '750', 'Ca (mg)': '900', 'Fibre': '0', 'Osmolality (mOsm/kg)': '314', 'H20': '841.0', 'FOS': '0.0', 'Vit K (ug)': '85', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Ultracal', 'Display_Name': 'Ultracal', 'Display_Name_Chi': '安體健', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1010.0, 'Protein': 44.0, 'CHO': 130.0, 'Fat': 35.2, 'Na (mg)': '1000', 'K (mg)': '1150', 'P (mg)': '700', 'Ca (mg)': '800', 'Fibre': '16', 'Osmolality (mOsm/kg)': '272', 'H20': '840.0', 'FOS': 'NA', 'Vit K (ug)': '80', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Compleat', 'Display_Name': 'Compleat', 'Display_Name_Chi': '天源素', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1060.0, 'Protein': 48.0, 'CHO': 128.0, 'Fat': 40.0, 'Na (mg)': '1000', 'K (mg)': '1560', 'P (mg)': '840', 'Ca (mg)': '880', 'Fibre': '8', 'Osmolality (mOsm/kg)': '450', 'H20': '828.0', 'FOS': 'NA', 'Vit K (ug)': '100', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Fresubin Energy Fibre', 'Display_Name': 'Fresubin Energy Fiber', 'Display_Name_Chi': '倍健纖', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1500.0, 'Protein': 56.0, 'CHO': 178.0, 'Fat': 58.0, 'Na (mg)': '800', 'K (mg)': '1350', 'P (mg)': '800', 'Ca (mg)': '1350', 'Fibre': '20', 'Osmolality (mOsm/kg)': '580', 'H20': '775.0', 'FOS': 'NA', 'Vit K (ug)': '167', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Fresubin 2kcal  (Apricot)', 'Display_Name': 'Fresubin 2kcal (Apricot)', 'Display_Name_Chi': '倍力康', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 2000.0, 'Protein': 100.0, 'CHO': 225.0, 'Fat': 78.0, 'Na (mg)': '600', 'K (mg)': '1600', 'P (mg)': '1200', 'Ca (mg)': '2050', 'Fibre': '0', 'Osmolality (mOsm/kg)': '860', 'H20': '690.0', 'FOS': 'NA', 'Vit K (ug)': '210', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Glucerna (Tin)', 'Display_Name': 'Glucerna (RTF, tubefeed)', 'Display_Name_Chi': '怡保康', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 42.0, 'CHO': 81.9, 'Fat': 54.4, 'Na (mg)': '930', 'K (mg)': '1560', 'P (mg)': '720', 'Ca (mg)': '720', 'Fibre': '14.3', 'Osmolality (mOsm/kg)': '354', 'H20': '850.0', 'FOS': 'NA', 'Vit K (ug)': '59', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Resource Diabetic', 'Display_Name': 'Resource Diabetic', 'Display_Name_Chi': '力源素', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1040.0, 'Protein': 60.0, 'CHO': 84.0, 'Fat': 51.0, 'Na (mg)': '1030', 'K (mg)': '1180', 'P (mg)': '680', 'Ca (mg)': '880', 'Fibre': '19', 'Osmolality (mOsm/kg)': '254', 'H20': '835.0', 'FOS': 'NA', 'Vit K (ug)': '97', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Pulmocare', 'Display_Name': 'Pulmocare', 'Display_Name_Chi': 'NA', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1500.0, 'Protein': 62.4, 'CHO': 105.0, 'Fat': 93.2, 'Na (mg)': '1310', 'K (mg)': '1960', 'P (mg)': '1050', 'Ca (mg)': '1050', 'Fibre': '0', 'Osmolality (mOsm/kg)': '475', 'H20': '785.0', 'FOS': 'NA', 'Vit K (ug)': '84', 'Type': 'DM', 'Sugar': '14.0',
+          },
+          {
+            'unique_name': 'Diben Drink  (Capp)', 'Display_Name': 'Diben Drink (Capp)', 'Display_Name_Chi': '倍速定', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1500.0, 'Protein': 75.0, 'CHO': 131.0, 'Fat': 70.0, 'Na (mg)': '700', 'K (mg)': '1300', 'P (mg)': '950', 'Ca (mg)': '1500', 'Fibre': '20', 'Osmolality (mOsm/kg)': '490', 'H20': '790.0', 'FOS': '0.0', 'Vit K (ug)': '167', 'Type': 'DM', 'Sugar': '5.0',
+          },
+          {
+            'unique_name': 'Nepro HP', 'Display_Name': 'Nepro HP', 'Display_Name_Chi': '怡腎康 HP', 'serving_Num': 220.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1820.0, 'Protein': 81.0, 'CHO': 147.4, 'Fat': 97.7, 'Na (mg)': '700', 'K (mg)': '1060', 'P (mg)': '720', 'Ca (mg)': '1060', 'Fibre': '12.6', 'Osmolality (mOsm/kg)': '735', 'H20': '732.9', 'FOS': '8.4', 'Vit K (ug)': '90', 'Type': 'Renal',
+          },
+          {
+            'unique_name': 'Nepro LP', 'Display_Name': 'Nepro LP', 'Display_Name_Chi': '怡腎康 LP', 'serving_Num': 220.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1820.0, 'Protein': 45.2, 'CHO': 185.3, 'Fat': 97.0, 'Na (mg)': '800', 'K (mg)': '1140', 'P (mg)': '650', 'Ca (mg)': '730', 'Fibre': '12.6', 'Osmolality (mOsm/kg)': '800', 'H20': '737.2', 'FOS': '8.8', 'Vit K (ug)': '84', 'Type': 'Renal',
+          },
+          {
+            'unique_name': 'Renilon 7.5', 'Display_Name': 'Renilon 7.5 (Apricot/Caramel)', 'Display_Name_Chi': '腎宜7.5', 'serving_Num': 125.0, 'Serving_unit': 'ml', 'value_base': 125.0, 'Energy': 249.0, 'Protein': 9.1, 'CHO': 25.0, 'Fat': 12.5, 'Na (mg)': '85', 'K (mg)': '30', 'P (mg)': '7.5', 'Ca (mg)': '6.25', 'Fibre': '0', 'Osmolality (mOsm/kg)': '410', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '13.8', 'Type': 'Renal',
+          },
+          {
+            'unique_name': 'Peptamen with Prebio 1', 'Display_Name': 'Peptamen with Prebio 1', 'Display_Name_Chi': '佳易得', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 40.0, 'CHO': 128.0, 'Fat': 40.0, 'Na (mg)': '480', 'K (mg)': '1600', 'P (mg)': '700', 'Ca (mg)': '800', 'Fibre': '4', 'Osmolality (mOsm/kg)': '337', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '80', 'Type': 'Other',
+          },
+          {
+            'unique_name': 'Vivonex Plus', 'Display_Name': 'Vivonex Plus (1pkg/79.5g)', 'Display_Name_Chi': 'NA', 'serving_Num': 300.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 43.3, 'CHO': 193.0, 'Fat': 6.67, 'Na (mg)': '667', 'K (mg)': '1000', 'P (mg)': '567', 'Ca (mg)': '567', 'Fibre': '0', 'Osmolality (mOsm/kg)': '650', 'H20': '833.0', 'FOS': 'NA', 'Vit K (ug)': '46.7', 'Type': 'Other',
+          },
+          {
+            'unique_name': 'Ensure Liquid  (Chocolate)', 'Display_Name': 'Ensure (New Choco, RTD)', 'Display_Name_Chi': 'NA', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 40.0, 'CHO': 135.6, 'Fat': 33.6, 'Na (mg)': '880', 'K (mg)': '1190', 'P (mg)': '500', 'Ca (mg)': '500', 'Fibre': '0', 'Osmolality (mOsm/kg)': '397', 'H20': '853.0', 'FOS': '0.0', 'Vit K (ug)': '42', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Fresubin Jucy', 'Display_Name': 'Fresubin Jucy (Apple/ Orange)', 'Display_Name_Chi': '果之保', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 300.0, 'Protein': 8.0, 'CHO': 67.0, 'Fat': 0.0, 'Na (mg)': '12', 'K (mg)': '14', 'P (mg)': '22', 'Ca (mg)': '100', 'Fibre': '0', 'Osmolality (mOsm/kg)': '900', 'H20': '152.0', 'FOS': 'NA', 'Vit K (ug)': '50', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Ensure Liquid  (Vanilla)', 'Display_Name': 'Ensure (Van, RTD)', 'Display_Name_Chi': '加營素', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1060.0, 'Protein': 37.0, 'CHO': 170.0, 'Fat': 26.0, 'Na (mg)': '840', 'K (mg)': '1560', 'P (mg)': '1270', 'Ca (mg)': '1270', 'Fibre': '0', 'Osmolality (mOsm/kg)': '590', 'H20': '840.0', 'FOS': '0.0', 'Vit K (ug)': '80', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Ensure (powder)', 'Display_Name': 'Ensure (6scp/53.8g) (Van)', 'Display_Name_Chi': 'NA', 'serving_Num': 230.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 37.2, 'CHO': 134.2, 'Fat': 32.7, 'Na (mg)': '840', 'K (mg)': '1250', 'P (mg)': '440', 'Ca (mg)': '840', 'Fibre': '10.1', 'Osmolality (mOsm/kg)': '453', 'H20': '847.8', 'FOS': '10.1', 'Vit K (ug)': '62', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Ensure Low Sugar', 'Display_Name': 'Ensure Low Sugar (6scp/53.8g)', 'Display_Name_Chi': 'NA', 'serving_Num': 6.0, 'Serving_unit': 'scp', 'value_base': 6.0, 'Energy': 230.0, 'Protein': 8.6, 'CHO': 30.9, 'Fat': 7.5, 'Na (mg)': '246.1', 'K (mg)': '260', 'P (mg)': '116', 'Ca (mg)': '176.03432', 'Fibre': '2.3', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Ensure NutriVigor', 'Display_Name': 'Ensure NutriVigor (6scp/54.1g)', 'Display_Name_Chi': '活力加營素', 'serving_Num': 6.0, 'Serving_unit': 'scp', 'value_base': 6.0, 'Energy': 231.0, 'Protein': 8.6, 'CHO': 30.2, 'Fat': 7.6, 'Na (mg)': '232.3', 'K (mg)': '370', 'P (mg)': '102', 'Ca (mg)': '256.04992', 'Fibre': '1.7', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Nutren Optimum', 'Display_Name': 'Nutren Optimum (7scp/55g)', 'Display_Name_Chi': '佳膳益生', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 981.0, 'Protein': 40.7, 'CHO': 117.7, 'Fat': 38.5, 'Na (mg)': '462', 'K (mg)': '1206', 'P (mg)': '473', 'Ca (mg)': '858', 'Fibre': '11', 'Osmolality (mOsm/kg)': '300', 'H20': '840.0', 'FOS': 'NA', 'Vit K (ug)': '81', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Nutren Fiber', 'Display_Name': 'Nutren Fiber (7scp/58g)', 'Display_Name_Chi': '佳膳纖維', 'serving_Num': 7.0, 'Serving_unit': 'scp', 'value_base': 7.0, 'Energy': 251.0, 'Protein': 10.0, 'CHO': 31.4, 'Fat': 9.5, 'Na (mg)': '232.3', 'K (mg)': '269', 'P (mg)': '123', 'Ca (mg)': '128.02496', 'Fibre': '3.8', 'Osmolality (mOsm/kg)': '360', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Fresubin Powder Fiber', 'Display_Name': 'Fresubin Powder Fiber (3scp/46g)', 'Display_Name_Chi': '倍力康全效均衡營養粉', 'serving_Num': 3.0, 'Serving_unit': 'scp', 'value_base': 3.0, 'Energy': 200.0, 'Protein': 7.4, 'CHO': 26.6, 'Fat': 6.6, 'Na (mg)': '140.3', 'K (mg)': '300', 'P (mg)': '94', 'Ca (mg)': '136.02652', 'Fibre': '2', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Isocal', 'Display_Name': 'Isocal', 'Display_Name_Chi': '愛素寶', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 250.0, 'Energy': 250.0, 'Protein': 8.7, 'CHO': 33.7, 'Fat': 9.0, 'Na (mg)': '250', 'K (mg)': '300', 'P (mg)': '217', 'Ca (mg)': '217', 'Fibre': '0', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Jevity', 'Display_Name': 'Jevity', 'Display_Name_Chi': '健營素', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 251.0, 'Protein': 10.4, 'CHO': 36.0, 'Fat': 8.5, 'Na (mg)': '174.8', 'K (mg)': '294', 'P (mg)': '180', 'Ca (mg)': '216.04212', 'Fibre': '3.3', 'Osmolality (mOsm/kg)': '327', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Osmolite HN', 'Display_Name': 'Osmolite HN', 'Display_Name_Chi': 'NA', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 252.0, 'Protein': 10.5, 'CHO': 33.4, 'Fat': 8.5, 'Na (mg)': '181.7', 'K (mg)': '313', 'P (mg)': '180', 'Ca (mg)': '180.0351', 'Fibre': '0', 'Osmolality (mOsm/kg)': '300', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Standard',
+          },
+          {
+            'unique_name': 'Fortijuice', 'Display_Name': 'Fortijuce (Apple/ BC/ Strawberry/ Forest fruits)', 'Display_Name_Chi': '營果健', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 300.0, 'Protein': 7.8, 'CHO': 67.2, 'Fat': 0.0, 'Na (mg)': '17.1', 'K (mg)': '19.38', 'P (mg)': '24', 'Ca (mg)': '50', 'Fibre': '0', 'Osmolality (mOsm/kg)': '750', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '20', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Resource Ultra Clear Fruit', 'Display_Name': 'Resource Ultra Clear Fruit Beverage', 'Display_Name_Chi': '力源素 果萃', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 300.0, 'Protein': 14.0, 'CHO': 61.0, 'Fat': 0.0, 'Na (mg)': '<30', 'K (mg)': 'NA', 'P (mg)': '250', 'Ca (mg)': 'NA', 'Fibre': '0', 'Osmolality (mOsm/kg)': '950', 'H20': '153.0', 'FOS': 'NA', 'Vit K (ug)': '13', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Ensure Compact', 'Display_Name': 'Ensure Compact (Van/Banana/Strawberry)', 'Display_Name_Chi': 'NA', 'serving_Num': 125.0, 'Serving_unit': 'ml', 'value_base': 125.0, 'Energy': 300.0, 'Protein': 12.8, 'CHO': 36.0, 'Fat': 11.7, 'Na (mg)': '181.7', 'K (mg)': '269', 'P (mg)': '213', 'Ca (mg)': '212.04134', 'Fibre': '0', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Isosource 1.2 HN', 'Display_Name': 'IsoSource 1.2HN', 'Display_Name_Chi': '益源素1.2HN', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1200.0, 'Protein': 54.0, 'CHO': 157.0, 'Fat': 40.0, 'Na (mg)': '1090', 'K (mg)': '1600', 'P (mg)': '590', 'Ca (mg)': '910', 'Fibre': '0', 'Osmolality (mOsm/kg)': '378', 'H20': '819.0', 'FOS': 'NA', 'Vit K (ug)': '70', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'FiberSource 1.2HN', 'Display_Name': 'FiberSource 1.2HN', 'Display_Name_Chi': '纖源素1.2HN', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 290.0, 'Protein': 12.8, 'CHO': 37.0, 'Fat': 9.7, 'Na (mg)': '246.1', 'K (mg)': '334', 'P (mg)': '168', 'Ca (mg)': '208.04056', 'Fibre': '3.6', 'Osmolality (mOsm/kg)': '366', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Isosource 1.5', 'Display_Name': 'IsoSource 1.5Cal', 'Display_Name_Chi': '健源素1.5Cal', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1510.0, 'Protein': 65.0, 'CHO': 167.0, 'Fat': 64.0, 'Na (mg)': '1000', 'K (mg)': '1670', 'P (mg)': '700', 'Ca (mg)': '1000', 'Fibre': '10', 'Osmolality (mOsm/kg)': '516', 'H20': '763.0', 'FOS': 'NA', 'Vit K (ug)': '60', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Resource 2.0', 'Display_Name': 'Resource 2.0', 'Display_Name_Chi': '力源素 2.0', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 400.0, 'Protein': 18.0, 'CHO': 42.8, 'Fat': 17.4, 'Na (mg)': '220', 'K (mg)': '380', 'P (mg)': '240', 'Ca (mg)': '350', 'Fibre': '0', 'Osmolality (mOsm/kg)': '739', 'H20': '140.0', 'FOS': 'NA', 'Vit K (ug)': '26', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Fresubin 2kcal Fiber', 'Display_Name': 'Fresubin 2kcal Fiber (Van)', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 400.0, 'Protein': 20.0, 'CHO': 43.6, 'Fat': 15.6, 'Na (mg)': '119.6', 'K (mg)': '320', 'P (mg)': '240', 'Ca (mg)': '412.08034', 'Fibre': '3', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Resource Ultra', 'Display_Name': 'Resource Ultra', 'Display_Name_Chi': '力源素 倍營', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 450.0, 'Protein': 28.0, 'CHO': 45.2, 'Fat': 17.5, 'Na (mg)': '0', 'K (mg)': '195', 'P (mg)': '195', 'Ca (mg)': '389.275894', 'Fibre': '?', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Fortisip Compact Protein', 'Display_Name': 'Fortsip Compact Protein', 'Display_Name_Chi': '營保健', 'serving_Num': 125.0, 'Serving_unit': 'ml', 'value_base': 125.0, 'Energy': 306.0, 'Protein': 18.3, 'CHO': 31.4, 'Fat': 12.0, 'Na (mg)': '43.75', 'K (mg)': '122', 'P (mg)': '353', 'Ca (mg)': '438', 'Fibre': '0', 'Osmolality (mOsm/kg)': '570', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '23.6', 'Type': 'Energy-dense',
+          },
+          {
+            'unique_name': 'Glucerna (Tetra)', 'Display_Name': 'Glucerna (RTF, tetrapak)', 'Display_Name_Chi': '怡保康', 'serving_Num': 230.0, 'Serving_unit': 'ml', 'value_base': 230.0, 'Energy': 223.0, 'Protein': 10.0, 'CHO': 25.0, 'Fat': 8.1, 'Na (mg)': '219', 'K (mg)': '345', 'P (mg)': '138', 'Ca (mg)': '196', 'Fibre': '3', 'Osmolality (mOsm/kg)': '725', 'H20': '0.0', 'FOS': '0.92', 'Vit K (ug)': '14', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Glucerna Powder', 'Display_Name': 'Glucerna (5scp/52.1g)', 'Display_Name_Chi': '怡保康', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 950.0, 'Protein': 42.9, 'CHO': 114.7, 'Fat': 35.0, 'Na (mg)': '970', 'K (mg)': '1250', 'P (mg)': '570', 'Ca (mg)': '570', 'Fibre': '13.5', 'Osmolality (mOsm/kg)': '580', 'H20': '844.0', 'FOS': '4.5', 'Vit K (ug)': '67', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'NutrenDM (Tetrapak)', 'Display_Name': 'NutrenDM (Tetrapak)', 'Display_Name_Chi': '佳膳適糖', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 229.0, 'Protein': 10.7, 'CHO': 23.2, 'Fat': 10.4, 'Na (mg)': '230', 'K (mg)': '228', 'P (mg)': '130', 'Ca (mg)': '188.03666', 'Fibre': '4.5', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Nutren Diabetes (Powder)', 'Display_Name': 'NutrenDM (7scp/55g)', 'Display_Name_Chi': '佳膳適糖', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 968.0, 'Protein': 45.2, 'CHO': 98.0, 'Fat': 44.0, 'Na (mg)': '948', 'K (mg)': '960', 'P (mg)': '552', 'Ca (mg)': '816', 'Fibre': '19.16', 'Osmolality (mOsm/kg)': '250', 'H20': '840.0', 'FOS': 'NA', 'Vit K (ug)': '80', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Diasip', 'Display_Name': 'Diasip (Van/Capp/Strawberry)', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 208.0, 'Protein': 9.7, 'CHO': 23.4, 'Fat': 7.5, 'Na (mg)': '110.4', 'K (mg)': '200', 'P (mg)': '94', 'Ca (mg)': '108.02106', 'Fibre': '4', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'DM',
+          },
+          {
+            'unique_name': 'Fresubin Renal Drink', 'Display_Name': 'Fresubin Renal Drink', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 2000.0, 'Protein': 30.0, 'CHO': 264.0, 'Fat': 89.0, 'Na (mg)': '680', 'K (mg)': '1000', 'P (mg)': '550', 'Ca (mg)': '840', 'Fibre': '12', 'Osmolality (mOsm/kg)': '710', 'H20': '710.0', 'FOS': 'NA', 'Vit K (ug)': '105', 'Type': 'Renal',
+          },
+          {
+            'unique_name': 'Renilon 4.0', 'Display_Name': 'Renilon 4.0 (Apricot/Caramel)', 'Display_Name_Chi': '腎宜康4.0', 'serving_Num': 125.0, 'Serving_unit': 'ml', 'value_base': 125.0, 'Energy': 250.0, 'Protein': 5.0, 'CHO': 29.5, 'Fat': 12.5, 'Na (mg)': '47.3', 'K (mg)': '34.9', 'P (mg)': '<7.5', 'Ca (mg)': '<9.4', 'Fibre': '0', 'Osmolality (mOsm/kg)': '455', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '13.8', 'Type': 'Renal',
+          },
+          {
+            'unique_name': 'Periative', 'Display_Name': 'Periative', 'Display_Name_Chi': 'NA', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 308.0, 'Protein': 15.9, 'CHO': 41.9, 'Fat': 8.8, 'Na (mg)': '250.7', 'K (mg)': '410', 'P (mg)': '210', 'Ca (mg)': '212.04134', 'Fibre': '0', 'Osmolality (mOsm/kg)': '385', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Other',
+          },
+          {
+            'unique_name': 'Cubitan', 'Display_Name': 'Cubitan', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 248.0, 'Protein': 17.6, 'CHO': 29.0, 'Fat': 7.0, 'Na (mg)': '100', 'K (mg)': '300', 'P (mg)': '364', 'Ca (mg)': '450', 'Fibre': '<1', 'Osmolality (mOsm/kg)': '500', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '20', 'Type': 'Wound',
+          },
+          {
+            'unique_name': 'Fresubin Hepa', 'Display_Name': 'Fresubin Hepa Drink (Capp)', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 260.0, 'Protein': 8.0, 'CHO': 34.8, 'Fat': 9.4, 'Na (mg)': '150', 'K (mg)': '240', 'P (mg)': '106', 'Ca (mg)': '160', 'Fibre': '2', 'Osmolality (mOsm/kg)': '460', 'H20': '156.0', 'FOS': 'NA', 'Vit K (ug)': '13.3', 'Type': 'Kliver',
+          },
+          {
+            'unique_name': 'Oral Impact (Powder)', 'Display_Name': 'Oral Impact (1pk/74g) Omega 3: 962mg', 'Display_Name_Chi': '速癒素', 'serving_Num': 74.0, 'Serving_unit': 'g', 'value_base': 74.0, 'Energy': 304.0, 'Protein': 17.5, 'CHO': 41.9, 'Fat': 7.4, 'Na (mg)': '321', 'K (mg)': '402', 'P (mg)': '216', 'Ca (mg)': '240', 'Fibre': '3', 'Osmolality (mOsm/kg)': '620', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '20', 'Type': 'Cancer',
+          },
+          {
+            'unique_name': 'Oral Impact (RTD)', 'Display_Name': 'Oral Impact (RTF) Omega 3: 1422mg', 'Display_Name_Chi': '速癒素', 'serving_Num': 237.0, 'Serving_unit': 'ml', 'value_base': 237.0, 'Energy': 334.0, 'Protein': 18.0, 'CHO': 44.8, 'Fat': 9.2, 'Na (mg)': '356', 'K (mg)': '450', 'P (mg)': '239', 'Ca (mg)': '270', 'Fibre': '3.3', 'Osmolality (mOsm/kg)': '900', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '22.3', 'Type': 'Cancer',
+          },
+          {
+            'unique_name': 'Oral Impact RS (Powder)', 'Display_Name': 'Oral Impact  減糖(粉)', 'Display_Name_Chi': 'NA', 'serving_Num': 1.0, 'Serving_unit': 'pack', 'value_base': 1.0, 'Energy': 305.0, 'Protein': 18.1, 'CHO': 34.0, 'Fat': 10.0, 'Na (mg)': '207', 'K (mg)': '537', 'P (mg)': '216', 'Ca (mg)': '289', 'Fibre': '3', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'NA',
+          },
+          {
+            'unique_name': 'Oral Impact RS (RTD)', 'Display_Name': 'Oral Impact  減糖(枝)', 'Display_Name_Chi': 'NA', 'serving_Num': 250.0, 'Serving_unit': 'ml', 'value_base': 250.0, 'Energy': 355.0, 'Protein': 21.5, 'CHO': 34.0, 'Fat': 10.0, 'Na (mg)': '363', 'K (mg)': '488', 'P (mg)': '213', 'Ca (mg)': '250', 'Fibre': '2.3', 'Osmolality (mOsm/kg)': '642', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'NA',
+          },
+          {
+            'unique_name': 'Prosure', 'Display_Name': 'Prosure (9scp/75g) (Van/Orange)', 'Display_Name_Chi': '保康速', 'serving_Num': 240.0, 'Serving_unit': 'ml', 'value_base': 240.0, 'Energy': 302.0, 'Protein': 15.97, 'CHO': 43.24, 'Fat': 6.14, 'Na (mg)': '288', 'K (mg)': '432', 'P (mg)': '160', 'Ca (mg)': '348', 'Fibre': '4.97', 'Osmolality (mOsm/kg)': '616', 'H20': 'NA', 'FOS': '2.64', 'Vit K (ug)': '24', 'Type': 'Cancer',
+          },
+          {
+            'unique_name': 'Supportan', 'Display_Name': 'Supportan (Pineapple Coco/Tropical fruit/Capp)', 'Display_Name_Chi': '加力康', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 300.0, 'Protein': 20.0, 'CHO': 23.2, 'Fat': 13.4, 'Na (mg)': '95', 'K (mg)': '256', 'P (mg)': '240', 'Ca (mg)': '406', 'Fibre': '3', 'Osmolality (mOsm/kg)': '500/510/575', 'H20': '152.0', 'FOS': 'NA', 'Vit K (ug)': '42', 'Type': 'Cancer',
+          },
+          {
+            'unique_name': 'Survimed OPD', 'Display_Name': 'Survimed OPD Drink', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 1000.0, 'Energy': 1000.0, 'Protein': 46.5, 'CHO': 141.0, 'Fat': 28.0, 'Na (mg)': '800', 'K (mg)': '2000', 'P (mg)': '480', 'Ca (mg)': '650', 'Fibre': '<1', 'Osmolality (mOsm/kg)': '480', 'H20': '850.0', 'FOS': 'NA', 'Vit K (ug)': '67', 'Type': 'element',
+          },
+          {
+            'unique_name': 'Nil Modular', 'Display_Name': 'Nil Modular', 'Display_Name_Chi': 'NA', 'serving_Num': 0.0, 'Serving_unit': '0', 'value_base': 0.0, 'Energy': 0.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 0.0, 'Na (mg)': '0', 'K (mg)': '0', 'P (mg)': '0', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': '0', 'H20': '0.0', 'FOS': '0.0', 'Vit K (ug)': '0', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Abound', 'Display_Name': 'Abound', 'Display_Name_Chi': '快癒素', 'serving_Num': 24.0, 'Serving_unit': 'g', 'value_base': 24.0, 'Energy': 79.0, 'Protein': 14.0, 'CHO': 7.9, 'Fat': 0.0, 'Na (mg)': '0', 'K (mg)': '0', 'P (mg)': '0', 'Ca (mg)': '200', 'Fibre': 'NA', 'Osmolality (mOsm/kg)': '461', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '0', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Fresubin Protein Powder', 'Display_Name': 'Fresubin Protein Powder', 'Display_Name_Chi': '蛋白樂', 'serving_Num': 6.0, 'Serving_unit': 'g', 'value_base': 6.0, 'Energy': 22.0, 'Protein': 5.2, 'CHO': 0.0, 'Fat': 0.1, 'Na (mg)': '33', 'K (mg)': '72', 'P (mg)': '14.4', 'Ca (mg)': '3.6', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '-', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Beneprotein', 'Display_Name': 'Beneprotein', 'Display_Name_Chi': '蛋白補', 'serving_Num': 7.0, 'Serving_unit': 'scp', 'value_base': 7.0, 'Energy': 25.0, 'Protein': 6.0, 'CHO': 0.0, 'Fat': 0.0, 'Na (mg)': '15', 'K (mg)': '0', 'P (mg)': '0', 'Ca (mg)': '0', 'Fibre': 'NA', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '0', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Protifar', 'Display_Name': 'Protifar', 'Display_Name_Chi': '補體素', 'serving_Num': 1.0, 'Serving_unit': 'scp', 'value_base': 1.0, 'Energy': 9.2, 'Protein': 2.4, 'CHO': 0.0, 'Fat': 0.0, 'Na (mg)': '2.3', 'K (mg)': '4', 'P (mg)': '18', 'Ca (mg)': '32.00624', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Polycal', 'Display_Name': 'Polycal', 'Display_Name_Chi': '補能素', 'serving_Num': 5.0, 'Serving_unit': 'g', 'value_base': 5.0, 'Energy': 19.2, 'Protein': 0, 'CHO': 4.8, 'Fat': 0, 'Na (mg)': '0.1', 'K (mg)': 'NA', 'P (mg)': 'NA', 'Ca (mg)': 'NA', 'Fibre': 'NA', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Optifibre', 'Display_Name': 'OptiFiber', 'Display_Name_Chi': '纖維樂', 'serving_Num': 5.0, 'Serving_unit': 'g', 'value_base': 5.0, 'Energy': 1.5, 'Protein': 0.075, 'CHO': 0.3, 'Fat': 0.0, 'Na (mg)': '<10', 'K (mg)': '<25', 'P (mg)': 'NA', 'Ca (mg)': 'NA', 'Fibre': '4.3', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Glutamine Plus', 'Display_Name': 'Glutamine Plus (1pk/22.4g) (Unflavoured/Orange)', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 80.0, 'Protein': 10.0, 'CHO': 9.6, 'Fat': 0.0, 'Na (mg)': '0', 'K (mg)': '/', 'P (mg)': '/', 'Ca (mg)': '0', 'Fibre': '1.2', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Calogen', 'Display_Name': 'Calogen (LCT 100%) (Neutral)', 'Display_Name_Chi': 'NA', 'serving_Num': 100.0, 'Serving_unit': 'ml', 'value_base': 100.0, 'Energy': 450.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 50.0, 'Na (mg)': '6.9', 'K (mg)': '0', 'P (mg)': '/', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Lorenzo\'s Oil', 'Display_Name': 'Lorenzo\'s Oil (LCT 100%)', 'Display_Name_Chi': 'NA', 'serving_Num': 100.0, 'Serving_unit': 'ml', 'value_base': 100.0, 'Energy': 807.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 89.7, 'Na (mg)': '0', 'K (mg)': '/', 'P (mg)': '/', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Liquigen', 'Display_Name': 'Liquigen (MCT/H2O 50/50%) (Unflavoured)', 'Display_Name_Chi': 'NA', 'serving_Num': 100.0, 'Serving_unit': 'ml', 'value_base': 100.0, 'Energy': 450.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 50.0, 'Na (mg)': '4.6', 'K (mg)': '0', 'P (mg)': '/', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'MCT oil', 'Display_Name': 'MCT oil (MCT 100%) (Unflavoured)', 'Display_Name_Chi': 'NA', 'serving_Num': 100.0, 'Serving_unit': 'ml', 'value_base': 100.0, 'Energy': 855.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 95.0, 'Na (mg)': '0', 'K (mg)': '/', 'P (mg)': '/', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Aminoleban', 'Display_Name': 'Aminoleban EN (1pk/50g)', 'Display_Name_Chi': '肝美靈', 'serving_Num': 50.0, 'Serving_unit': 'g', 'value_base': 50.0, 'Energy': 213.0, 'Protein': 13.5, 'CHO': 31.5, 'Fat': 3.7, 'Na (mg)': '38.98', 'K (mg)': '212.1', 'P (mg)': '92.41', 'Ca (mg)': '58.27', 'Fibre': 'NA', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '5.5', 'Type': 'Liver',
+          },
+          {
+            'unique_name': 'Cornstarch', 'Display_Name': 'Cornstarch', 'Display_Name_Chi': 'NA', 'serving_Num': 10.0, 'Serving_unit': 'g', 'value_base': 10.0, 'Energy': 34.6, 'Protein': 0.1, 'CHO': 0.0, 'Fat': 8.5, 'Na (mg)': '0', 'K (mg)': '1', 'P (mg)': '3', 'Ca (mg)': '0', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Monogen', 'Display_Name': 'Monogen (3.5g/17.5g) (LCT/MCT 20/80%)', 'Display_Name_Chi': 'NA', 'serving_Num': 87.5, 'Serving_unit': 'g', 'value_base': 87.5, 'Energy': 73.5, 'Protein': 2.2, 'CHO': 12.0, 'Fat': 1.9, 'Na (mg)': '34.5', 'K (mg)': '63', 'P (mg)': '35', 'Ca (mg)': '44.00858', 'Fibre': '0', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Modular',
+          },
+          {
+            'unique_name': 'Pre-op', 'Display_Name': 'Pre-op (Lemon)', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 100.0, 'Protein': 0.0, 'CHO': 0.0, 'Fat': 25.2, 'Na (mg)': '98.9', 'K (mg)': '244', 'P (mg)': '1', 'Ca (mg)': '12.00234', 'Fibre': '0', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Other',
+          },
+          {
+            'unique_name': 'Meritene', 'Display_Name': 'Meritene (Chicken/Vegetables)', 'Display_Name_Chi': 'NA', 'serving_Num': 150.0, 'Serving_unit': 'ml', 'value_base': 150.0, 'Energy': 200.0, 'Protein': 7.0, 'CHO': 26.0, 'Fat': 7.5, 'Na (mg)': '420.9', 'K (mg)': '600', 'P (mg)': '260', 'Ca (mg)': '0', 'Fibre': '3.5', 'Osmolality (mOsm/kg)': '0', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Other',
+          },
+          {
+            'unique_name': 'ThickenUp Instant Puree', 'Display_Name': 'ThickenUp Instant Puree (Chicken/Beef)', 'Display_Name_Chi': 'NA', 'serving_Num': 70.0, 'Serving_unit': 'g', 'value_base': 70.0, 'Energy': 304.0, 'Protein': 16.8, 'CHO': 37.8, 'Fat': 9.5, 'Na (mg)': '322', 'K (mg)': '284', 'P (mg)': '196', 'Ca (mg)': '136', 'Fibre': '0.8', 'Osmolality (mOsm/kg)': 'NA', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': 'NA', 'Type': 'Food',
+          },
+          {
+            'unique_name': 'Ensure Plus', 'Display_Name': 'Ensure Plus', 'Display_Name_Chi': 'NA', 'serving_Num': 200.0, 'Serving_unit': 'ml', 'value_base': 200.0, 'Energy': 300.0, 'Protein': 12.5, 'CHO': 40.4, 'Fat': 9.84, 'Na (mg)': '184', 'K (mg)': '256', 'P (mg)': '160', 'Ca (mg)': '192', 'Fibre': '0', 'Osmolality (mOsm/kg)': '660', 'H20': 'NA', 'FOS': 'NA', 'Vit K (ug)': '19.2', 'Type': 'Energy-dense',
+          }
+        ];
+
+        // Ensure all data has consistent properties
+        supplementData.forEach(item => {
+            if (!item.FOS) item.FOS = 'NA';
+            if (!item['Vit K (ug)']) item['Vit K (ug)'] = 'NA';
+            if (!item.value_base_unit) item.value_base_unit = item.Serving_unit;
+        });
+        
+        // --- GLOBAL APP STATE & INITIALIZATION ---
+        let darkMode = false;
+        // Global variable to hold the sodium result from the Caltor tab
+        window.caltorSodiumMg = 0;
+
+        const appState = {
+            tabsInitialized: {
+                caltor: false,
+                naCalculator: false,
+                ckdPlanner: false,
+                mealPlan: false
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup global event listeners
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.getAttribute('data-tab')));
+            });
+
+            // Initialize the first tab
+            switchTab('nutrientBrowser');
+        });
+
+        function toggleTheme() {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark', darkMode);
+            document.getElementById('themeToggle').textContent = darkMode ? '☀️' : '🌙';
+        }
+        
+        function globalRefresh() {
+            // Re-initialize all apps to reflect data changes
+             if(appState.tabsInitialized.caltor) {
+                nutrientCaltorApp.init();
+             }
+             if (appState.tabsInitialized.naCalculator) {
+                naCalculatorApp.init();
+             }
+             if(appState.tabsInitialized.ckdPlanner) {
+                ckdPlannerApp.init();
+             }
+             if(appState.tabsInitialized.mealPlan) {
+                periPlannerApp.init();
+             }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.getAttribute('data-tab') === tabName);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabName);
+            });
+            
+            // Initialize tab on first view
+            const caltorTabs = ['nutrientBrowser', 'caltor'];
+            if (caltorTabs.includes(tabName) && !appState.tabsInitialized.caltor) {
+                nutrientCaltorApp.init();
+                appState.tabsInitialized.caltor = true;
+            } else if (tabName === 'naCalculator' && !appState.tabsInitialized.naCalculator) {
+                naCalculatorApp.init();
+                appState.tabsInitialized.naCalculator = true;
+            } else if (tabName === 'ckdPlanner' && !appState.tabsInitialized.ckdPlanner) {
+                ckdPlannerApp.init();
+                appState.tabsInitialized.ckdPlanner = true;
+            } else if (tabName === 'mealPlan' && !appState.tabsInitialized.mealPlan) {
+                periPlannerApp.init();
+                appState.tabsInitialized.mealPlan = true;
+            }
+        }
+
+        function formatValue(value, precision = 1) {
+            if (value === undefined || value === null || value === '' || String(value).toLowerCase() === 'na') return 'NA';
+            const num = parseFloat(String(value).replace(/<|>/g, ''));
+            if (isNaN(num)) return 'NA';
+            return String(Number(num.toFixed(precision)));
+        }
+
+        function formatTspToFraction(value) {
+            if (value === 0) return "0 tsp";
+            const tolerance = 1.0E-6;
+            let wholePart = Math.floor(value);
+            let fracPart = value - wholePart;
+
+            if (fracPart < tolerance) {
+                return `${wholePart} tsp`;
+            }
+
+            // Common fractions for tsp
+            const fractions = {
+                "1/8": 0.125, "1/4": 0.25, "1/3": 1/3, "1/2": 0.5, "2/3": 2/3, "3/4": 0.75
+            };
+            
+            let bestMatch = "";
+            let minDiff = Infinity;
+
+            for (const [key, val] of Object.entries(fractions)) {
+                const diff = Math.abs(fracPart - val);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestMatch = key;
+                }
+            }
+            
+            if (minDiff < 0.01) { // If it's a close match to a common fraction
+                return (wholePart > 0 ? wholePart + " " : "") + bestMatch + " tsp";
+            }
+            
+            return `${value.toFixed(2)} tsp`; // Fallback for uncommon fractions
+        }
+
+        // --- NUTRIENT BROWSER & CALCULATOR APP LOGIC ---
+        const nutrientCaltorApp = {
+            filteredData: [],
+            selectedItem: null,
+            modularItem: null,
+            calculationBasis: 'volume',
+            basisOptions: ['volume', 'energy', 'protein', 'serving'],
+            basisLabels: {
+                volume: 'Target Volume',
+                energy: 'Target Energy',
+                protein: 'Target Protein',
+                serving: 'Target Serving'
+            },
+            
+            init() {
+                this.filteredData = [...supplementData];
+                this.setupEventListeners();
+                this.populateNutrientList();
+                this.populateSelectOptions();
+                this.updateBasisDisplay();
+            },
+
+            setupEventListeners() {
+                document.getElementById('nutrientBrowserSearchInput').addEventListener('input', () => this.handleSearch());
+                
+                const baseFormulaContainer = document.getElementById('nutrientCalcBaseFormulaContainer');
+                document.getElementById('nutrientCalcBaseFormulaDisplay').addEventListener('click', (e) => this.toggleBaseFormulaPopup(e));
+                document.getElementById('nutrientCalcBaseFormulaSearchInput').addEventListener('input', () => this.handleBaseFormulaSearch());
+                window.addEventListener('click', (e) => {
+                    if (!baseFormulaContainer.contains(e.target)) {
+                        document.getElementById('nutrientCalcBaseFormulaPopup').style.display = 'none';
+                    }
+                });
+                
+                document.getElementById('nutrientCalcBasisPrevBtn').addEventListener('click', () => this.cycleCalculationBasis(-1));
+                document.getElementById('nutrientCalcBasisNextBtn').addEventListener('click', () => this.cycleCalculationBasis(1));
+                
+                document.getElementById('nutrientCalcModularSelect').addEventListener('change', () => this.handleModularChange());
+                
+                document.querySelectorAll('#caltor .input-button').forEach(button => {
+                    button.addEventListener('click', (e) => this.handleInputButtonClick(e.currentTarget));
+                });
+
+                ['nutrientCalcVolumeInput', 'nutrientCalcEnergyInput', 'nutrientCalcProteinInput', 'nutrientCalcServingInput', 'nutrientCalcModularInput'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => this.updateCalculations());
+                });
+            },
+            
+            cycleCalculationBasis(direction) {
+                const currentIndex = this.basisOptions.indexOf(this.calculationBasis);
+                let nextIndex = currentIndex + direction;
+                if (nextIndex >= this.basisOptions.length) nextIndex = 0;
+                else if (nextIndex < 0) nextIndex = this.basisOptions.length - 1;
+                this.calculationBasis = this.basisOptions[nextIndex];
+                this.updateBasisDisplay();
+                this.updateCalculations();
+            },
+            
+            updateBasisDisplay() {
+                document.getElementById('nutrientCalcBasisLabel').textContent = this.basisLabels[this.calculationBasis];
+                document.getElementById('nutrientCalcCalculationBasisSelect').value = this.calculationBasis;
+            },
+
+            handleSearch() {
+                const searchTerm = document.getElementById('nutrientBrowserSearchInput').value.toLowerCase();
+                this.filteredData = supplementData.filter(item => 
+                    item.Display_Name.toLowerCase().includes(searchTerm) ||
+                    (item.Display_Name_Chi && item.Display_Name_Chi !== 'NA' && item.Display_Name_Chi.toLowerCase().includes(searchTerm)) ||
+                    (item.Type && item.Type.toLowerCase().includes(searchTerm))
+                );
+                this.populateNutrientList();
+            },
+
+            populateNutrientList() {
+                const listEl = document.getElementById('nutrientBrowserList');
+                listEl.innerHTML = '';
+                this.filteredData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.addEventListener('click', () => this.showNutrientDetail(item));
+                    
+                    card.innerHTML = `
+                        <div class="card-content card-flex-content">
+                            <div class="card-left">
+                                <div class="card-title">${item.Display_Name}</div>
+                                <div class="card-subtitle">${(item.Display_Name_Chi && item.Display_Name_Chi !== 'NA') ? item.Display_Name_Chi : ''}</div>
+                                <span class="badge">${item.Type || 'Standard'}</span>
+                            </div>
+                            <div class="card-right">
+                                <div class="energy-value">${formatValue(this.calculatePerServing(item, 'Energy'))} <span class="energy-unit">kcal</span></div>
+                                <div class="per-serving">per ${formatValue(item.serving_Num)}${item.Serving_unit || 'ml'}</div>
+                                <div class="macros">${formatValue(this.calculatePerServing(item, 'Protein'))}g P / ${formatValue(this.calculatePerServing(item, 'CHO'))}g C / ${formatValue(this.calculatePerServing(item, 'Fat'))}g F</div>
+                            </div>
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
+            },
+
+            showNutrientDetail(item) {
+                const modal = document.getElementById('nutrientBrowserDetailModal');
+                const modalTitle = document.getElementById('nutrientBrowserModalTitle');
+                const modalSubtitle = document.getElementById('nutrientBrowserModalSubtitle');
+                const modalBody = document.getElementById('nutrientBrowserModalBody');
+                const modalFooter = document.getElementById('nutrientBrowserModalFooter');
+                
+                modalTitle.textContent = item.Display_Name;
+                modalSubtitle.textContent = (item.Display_Name_Chi && item.Display_Name_Chi !== 'NA') ? item.Display_Name_Chi : '';
+                
+                const nutrientKeys = ['Energy', 'Protein', 'CHO', 'Fat', 'Na (mg)', 'K (mg)', 'P (mg)', 'Ca (mg)', 'Fibre', 'Osmolality (mOsm/kg)', 'H20', 'FOS', 'Vit K (ug)'];
+                const nutrientLabels = {'Energy': 'Energy (kcal)','Protein': 'Protein (g)','CHO': 'Carbs (g)','Fat': 'Fat (g)','Na (mg)': 'Sodium (mg)','K (mg)': 'Potassium (mg)','P (mg)': 'Phosphorus (mg)','Ca (mg)': 'Calcium (mg)','Fibre': 'Fibre (g)','Osmolality (mOsm/kg)': 'Osmolality','H20': 'Water (ml)','FOS': 'FOS (g)','Vit K (ug)': 'Vit K (µg)'};
+
+                let content = `
+                    <div class="grid-row"><span class="label">Serving:</span><span class="value">${formatValue(item.serving_Num)}${item.Serving_unit || ''}</span></div>
+                    <div class="grid-row"><span class="label">Type:</span><span class="value">${item.Type || 'Standard'}</span></div>
+                    <div class="separator"></div>
+                    <p class="summary-text" style="text-align: center; margin-bottom: 0.5rem;">Values per serving.</p>
+                `;
+                
+                nutrientKeys.forEach(key => {
+                    const value = this.calculatePerServing(item, key);
+                    content += `<div class="grid-row"><span class="label">${nutrientLabels[key] || key}:</span><span class="value">${formatValue(value)}</span></div>`;
+                });
+                
+                modalBody.innerHTML = content;
+                modalFooter.innerHTML = `<button class="edit-button" id="nutrientBrowserEditBtn">Edit Data</button><button class="close-button" id="nutrientBrowserCloseModal">Close</button>`;
+                document.getElementById('nutrientBrowserEditBtn').onclick = () => this.showEditView(item);
+                document.getElementById('nutrientBrowserCloseModal').onclick = () => this.closeModal();
+
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            },
+            
+            showEditView(item) {
+                const modalBody = document.getElementById('nutrientBrowserModalBody');
+                const modalFooter = document.getElementById('nutrientBrowserModalFooter');
+                const editableKeys = ['Energy', 'Protein', 'CHO', 'Fat', 'Na (mg)', 'K (mg)', 'P (mg)', 'Ca (mg)', 'Fibre', 'Osmolality (mOsm/kg)', 'H20', 'FOS', 'Vit K (ug)'];
+                
+                let formContent = `<form id="editSupplementForm">
+                    <div class="edit-form-basis">Nutrient values are based on <strong>${item.value_base} ${item.value_base_unit}</strong></div>
+                    <div class="edit-form-row">
+                        <label for="edit-Display_Name">Display Name</label>
+                        <input type="text" id="edit-Display_Name" name="Display_Name" value="${item.Display_Name}">
+                    </div>
+                     <div class="edit-form-row">
+                        <label for="edit-Display_Name_Chi">Chinese Name</label>
+                        <input type="text" id="edit-Display_Name_Chi" name="Display_Name_Chi" value="${item.Display_Name_Chi}">
+                    </div>
+                `;
+                editableKeys.forEach(key => {
+                    formContent += `
+                        <div class="edit-form-row">
+                            <label for="edit-${key}">${key}</label>
+                            <input type="text" id="edit-${key}" name="${key}" value="${item[key] || ''}">
+                        </div>`;
+                });
+                formContent += `</form>`;
+                
+                modalBody.innerHTML = formContent;
+                modalFooter.innerHTML = `<button class="close-button" id="editCancelBtn">Cancel</button><button class="save-button btn" id="editSaveBtn">Save</button>`;
+                
+                document.getElementById('editCancelBtn').onclick = () => this.showNutrientDetail(item);
+                document.getElementById('editSaveBtn').onclick = () => this.handleSave(item);
+            },
+            
+            handleSave(item) {
+                const form = document.getElementById('editSupplementForm');
+                const formData = new FormData(form);
+                const newData = {};
+                for (let [key, value] of formData.entries()) {
+                    newData[key] = value;
+                }
+                
+                this.showConfirmationModal(item.unique_name, newData);
+            },
+            
+            showConfirmationModal(unique_name, newData) {
+                const modal = document.getElementById('confirmationModal');
+                modal.style.display = 'flex';
+                
+                document.getElementById('confirmSaveBtn').onclick = () => {
+                    this.saveData(unique_name, newData);
+                    modal.style.display = 'none';
+                };
+                
+                document.getElementById('confirmCancelBtn').onclick = () => {
+                    modal.style.display = 'none';
+                };
+            },
+            
+            saveData(unique_name, newData) {
+                const index = supplementData.findIndex(d => d.unique_name === unique_name);
+                if (index !== -1) {
+                    // Update data, converting numeric fields back to numbers
+                    Object.keys(newData).forEach(key => {
+                        const originalValue = supplementData[index][key];
+                        if (typeof originalValue === 'number') {
+                            const parsed = parseFloat(newData[key]);
+                            supplementData[index][key] = isNaN(parsed) ? originalValue : parsed;
+                        } else {
+                            supplementData[index][key] = newData[key];
+                        }
+                    });
+                }
+                this.closeModal();
+                globalRefresh(); 
+            },
+
+            closeModal() {
+                document.getElementById('nutrientBrowserDetailModal').style.display = 'none';
+                document.body.style.overflow = '';
+            },
+            
+            toggleBaseFormulaPopup(e) {
+                e.stopPropagation();
+                const popup = document.getElementById('nutrientCalcBaseFormulaPopup');
+                const isVisible = popup.style.display === 'block';
+                popup.style.display = isVisible ? 'none' : 'block';
+                if (!isVisible) {
+                    document.getElementById('nutrientCalcBaseFormulaSearchInput').focus();
+                    document.getElementById('nutrientCalcBaseFormulaSearchInput').value = '';
+                    this.handleBaseFormulaSearch();
+                }
+            },
+            
+            handleBaseFormulaSearch() {
+                const searchTerm = document.getElementById('nutrientCalcBaseFormulaSearchInput').value.toLowerCase();
+                const baseFormulas = supplementData.filter(item => item.Type !== 'Modular');
+                const filteredFormulas = baseFormulas.filter(item =>
+                    item.Display_Name.toLowerCase().includes(searchTerm) ||
+                    (item.Display_Name_Chi && item.Display_Name_Chi !== 'NA' && item.Display_Name_Chi.toLowerCase().includes(searchTerm))
+                );
+                this.populateBaseFormulaList(filteredFormulas);
+            },
+            
+            populateBaseFormulaList(formulas) {
+                const listEl = document.getElementById('nutrientCalcBaseFormulaList');
+                listEl.innerHTML = '';
+                formulas.forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'custom-select-item';
+                    listItem.innerHTML = `
+                        <div class="custom-select-item-title">${item.Display_Name}</div>
+                        <div class="custom-select-item-subtitle">${item.Display_Name_Chi && item.Display_Name_Chi !== 'NA' ? item.Display_Name_Chi : ''}</div>
+                    `;
+                    listItem.addEventListener('click', () => this.selectBaseFormula(item));
+                    listEl.appendChild(listItem);
+                });
+            },
+            
+            selectBaseFormula(item) {
+                this.selectedItem = item;
+                document.getElementById('nutrientCalcBaseFormulaDisplay').querySelector('span').textContent = item.Display_Name;
+                document.getElementById('nutrientCalcBaseFormulaPopup').style.display = 'none';
+                this.updateCalculations();
+            },
+            
+            populateSelectOptions() {
+                const baseFormulas = supplementData.filter(item => item.Type !== 'Modular');
+                this.populateBaseFormulaList(baseFormulas);
+                
+                const modulars = supplementData.filter(item => item.Type === 'Modular' && item.unique_name !== 'Nil Modular');
+                const modularSelect = document.getElementById('nutrientCalcModularSelect');
+                modularSelect.innerHTML = '<option value="">Nil Modular</option>';
+                 modulars.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.unique_name;
+                    option.textContent = `${item.Display_Name} (${item.Display_Name_Chi && item.Display_Name_Chi !== 'NA' ? item.Display_Name_Chi : ''})`;
+                    modularSelect.appendChild(option);
+                });
+            },
+
+            handleModularChange() {
+                const modularSelect = document.getElementById('nutrientCalcModularSelect');
+                this.modularItem = supplementData.find(item => item.unique_name === modularSelect.value) || null;
+                document.getElementById('nutrientCalcModularQuantityRow').style.display = this.modularItem ? 'grid' : 'none';
+                if (this.modularItem) {
+                    document.getElementById('nutrientCalcModularUnit').textContent = 'serving(s)';
+                }
+                this.updateCalculations();
+            },
+
+            handleInputButtonClick(button) {
+                const action = button.getAttribute('data-action');
+                const target = button.getAttribute('data-target');
+                const inputs = {
+                    volume: { el: document.getElementById('nutrientCalcVolumeInput'), step: 50 },
+                    energy: { el: document.getElementById('nutrientCalcEnergyInput'), step: 100 },
+                    protein: { el: document.getElementById('nutrientCalcProteinInput'), step: 5 },
+                    serving: { el: document.getElementById('nutrientCalcServingInput'), step: 1 },
+                    modular: { el: document.getElementById('nutrientCalcModularInput'), step: 1 }
+                };
+
+                if (!inputs[target]) return;
+
+                let input = inputs[target].el;
+                let step = inputs[target].step;
+                let value = parseFloat(input.value) || 0;
+                
+                value = (action === 'increase') ? value + step : Math.max(0, value - step);
+                input.value = value;
+                this.updateCalculations();
+            },
+            
+            updateCalculations() {
+                if (!this.selectedItem) {
+                    document.getElementById('nutrientCalcCalculationResults').style.display = 'none';
+                    return;
+                }
+                document.getElementById('nutrientCalcCalculationResults').style.display = 'block';
+
+                let calculatedVolume = 0;
+                
+                // Determine the calculation volume based on the active basis
+                switch (this.calculationBasis) {
+                    case 'volume': 
+                        calculatedVolume = parseFloat(document.getElementById('nutrientCalcVolumeInput').value) || 0;
+                        break;
+                    case 'energy': 
+                        const targetEnergy = parseFloat(document.getElementById('nutrientCalcEnergyInput').value) || 0;
+                        calculatedVolume = this.selectedItem.Energy > 0 ? (targetEnergy / this.selectedItem.Energy) * this.selectedItem.value_base : 0;
+                        break;
+                    case 'protein': 
+                        const targetProtein = parseFloat(document.getElementById('nutrientCalcProteinInput').value) || 0;
+                        calculatedVolume = this.selectedItem.Protein > 0 ? (targetProtein / this.selectedItem.Protein) * this.selectedItem.value_base : 0;
+                        break;
+                    case 'serving': 
+                        const targetServing = parseFloat(document.getElementById('nutrientCalcServingInput').value) || 0;
+                        calculatedVolume = targetServing * this.selectedItem.serving_Num;
+                        break;
+                }
+                
+                const modularQuantity = parseFloat(document.getElementById('nutrientCalcModularInput').value) || 0;
+                let totalNutrients = {};
+                const nutrientKeys = ['Energy', 'Protein', 'CHO', 'Fat', 'Na (mg)', 'K (mg)', 'P (mg)', 'Ca (mg)', 'Fibre', 'Osmolality (mOsm/kg)', 'H20', 'FOS', 'Vit K (ug)'];
+                
+                nutrientKeys.forEach(key => {
+                    const baseValue = parseFloat(this.selectedItem[key]) || 0;
+                    let finalValue = this.selectedItem.value_base > 0 ? (calculatedVolume / this.selectedItem.value_base) * baseValue : 0;
+
+                    if (this.modularItem && modularQuantity > 0) {
+                        const modularValue = (parseFloat(this.modularItem[key]) || 0) * modularQuantity;
+                        finalValue += modularValue;
+                    }
+                    totalNutrients[key] = finalValue;
+                });
+
+                // Set global sodium value for Na Calculator and update it
+                window.caltorSodiumMg = totalNutrients['Na (mg)'] || 0;
+                if(appState.tabsInitialized.naCalculator) {
+                    naCalculatorApp.updateCalculations();
+                }
+                
+                this.updateSummary(totalNutrients, calculatedVolume, modularQuantity);
+                this.updateResultsTable(totalNutrients, calculatedVolume);
+            },
+            
+            updateSummary(totalNutrients, calculatedVolume, modularQuantity) {
+                let summary = `${this.selectedItem.Display_Name} at ${formatValue(calculatedVolume, 0)}ml`;
+                if (this.modularItem && modularQuantity > 0) {
+                    summary += ` with ${this.modularItem.Display_Name} ${formatValue(modularQuantity, 0)} serving(s)`;
+                }
+                document.getElementById('nutrientCalcSummaryTitle').textContent = summary;
+                
+                const sodiumMmol = totalNutrients['Na (mg)'] / 23;
+                const potassiumMmol = totalNutrients['K (mg)'] / 39.1;
+
+                const details = `${formatValue(totalNutrients['Energy'])}kcal, ${formatValue(totalNutrients['Protein'])}g protein, ` +
+                                `${formatValue(totalNutrients['Na (mg)'])}mg|${formatValue(sodiumMmol)}mmol Na, ` +
+                                `${formatValue(totalNutrients['K (mg)'])}mg|${formatValue(potassiumMmol)}mmol K, ` +
+                                `${formatValue(totalNutrients['H20'])}ml free water`;
+                document.getElementById('nutrientCalcSummaryDetails').textContent = details;
+            },
+            
+            updateResultsTable(totalNutrients, calculatedVolume) {
+                const tableBody = document.getElementById('nutrientCalcResultsTableBody');
+                const calculatedServings = this.selectedItem.serving_Num > 0 ? calculatedVolume / this.selectedItem.serving_Num : 0;
+                const modularQuantity = parseFloat(document.getElementById('nutrientCalcModularInput').value) || 0;
+                const nutrientKeys = ['Energy', 'Protein', 'CHO', 'Fat', 'Na (mg)', 'K (mg)', 'P (mg)', 'Ca (mg)', 'Fibre', 'Osmolality (mOsm/kg)', 'H20', 'FOS', 'Vit K (ug)'];
+                const nutrientLabels = {'Energy': 'Energy (kcal)','Protein': 'Protein (g)','CHO': 'Carbs (g)','Fat': 'Fat (g)','Na (mg)': 'Sodium (mg)','K (mg)': 'Potassium (mg)','P (mg)': 'Phosphorus (mg)','Ca (mg)': 'Calcium (mg)','Fibre': 'Fibre (g)','Osmolality (mOsm/kg)': 'Osmolality','H20': 'Water (ml)','FOS': 'FOS (g)','Vit K (ug)': 'Vit K (µg)'};
+
+                tableBody.innerHTML = '';
+                
+                let content = `<tr class="even-row"><td>Volume</td><td>${formatValue(calculatedVolume, 0)} ml</td></tr><tr class="odd-row"><td>Base Serving (${formatValue(this.selectedItem.serving_Num)}${this.selectedItem.Serving_unit || ''})</td><td>${formatValue(calculatedServings, 2)} units</td></tr>`;
+                
+                if (this.modularItem && modularQuantity > 0) {
+                    content += `<tr class="even-row"><td>Modular</td><td>${formatValue(modularQuantity)} serving(s)</td></tr>`;
+                }
+                
+                content += `<tr><td colspan="2" style="padding:0;"><div class="separator"></div></td></tr>`;
+                
+                nutrientKeys.forEach((key, index) => {
+                    const rowClass = (index + (this.modularItem && modularQuantity > 0 ? 1 : 0)) % 2 === 0 ? 'odd-row' : 'even-row';
+                    content += `<tr class="${rowClass}"><td>${nutrientLabels[key] || key}</td><td>${formatValue(totalNutrients[key])}</td></tr>`;
+                });
+                tableBody.innerHTML = content;
+            },
+
+            calculatePerServing(item, key) {
+                if (!item || item[key] === undefined || item[key] === null) return 'NA';
+                const baseValue = parseFloat(String(item[key]).replace(/<|>/g, ''));
+                if (isNaN(baseValue)) return formatValue(item[key]);
+
+                const servingNum = parseFloat(item.serving_Num);
+                const valueBase = parseFloat(item.value_base);
+                
+                if (isNaN(servingNum) || isNaN(valueBase) || valueBase === 0) {
+                    if (item.value_base === item.serving_Num) return formatValue(baseValue);
+                    return 'NA';
+                }
+                const factor = servingNum / valueBase;
+                return formatValue(baseValue * factor);
+            }
+        };
+
+        // --- SODIUM (Na) CALCULATOR APP LOGIC ---
+        const naCalculatorApp = {
+            state: {},
+            constants: {
+                ATOMIC_WEIGHT_NA: 23,
+                MOLECULAR_WEIGHT_NACL: 58.44,
+                MOLECULAR_WEIGHT_NAHCO3: 84.01,
+                NORMAL_SALINE_NA_CONC_MEQ_PER_L: 154,
+                HALF_NORMAL_SALINE_NA_CONC_MEQ_PER_L: 77,
+                OTHER_SOURCES: [
+                    { id: 'additionalNaCl', label: 'Additional NaCl', unit: 'mg', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
+                    { id: 'naHco3', label: 'NaHCO3', unit: 'mg', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
+                    { id: 'normalSaline', label: 'Normal Saline (0.9%)', unit: 'ml', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
+                    { id: 'halfNormalSaline', label: 'Half NS (0.45%)', unit: 'ml', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
+                ],
+                SOURCE_STEPS: {
+                    additionalNaCl: 100,
+                    naHco3: 100,
+                    normalSaline: 50,
+                    halfNormalSaline: 50
+                }
+            },
+
+            init() {
+                this.state = {
+                    bodyWeightKg: 60,
+                    naSource: 'calculatorSetA', // 'calculatorSetA' or 'manualNaCl'
+                    manualNaClMg: 0,
+                    otherSources: JSON.parse(JSON.stringify(this.constants.OTHER_SOURCES)) // Deep copy
+                };
+                this.setupEventListeners();
+                this.renderOtherSources();
+                this.updateCalculations();
+            },
+
+            setupEventListeners() {
+                // Main inputs
+                const bwInput = document.getElementById('naCalcBodyWeight');
+                bwInput.addEventListener('input', () => this.handleStateChange('bodyWeightKg', parseFloat(bwInput.value) || 0));
+                
+                document.querySelectorAll('#naCalculator .btn[data-target="bodyWeightKg"]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.dataset.action;
+                        const currentVal = parseFloat(bwInput.value) || 0;
+                        const newVal = action === 'increase' ? currentVal + 0.5 : Math.max(0, currentVal - 0.5);
+                        this.handleStateChange('bodyWeightKg', newVal);
+                        bwInput.value = newVal;
+                    });
+                });
+
+                // Radio buttons for source
+                document.querySelectorAll('input[name="naSource"]').forEach(radio => {
+                    radio.addEventListener('click', (e) => this.handleSourceChange(e.target.value));
+                });
+
+                // Manual NaCl input
+                const manualInput = document.getElementById('naCalcManualNaCl');
+                manualInput.addEventListener('input', () => this.handleStateChange('manualNaClMg', parseFloat(manualInput.value) || 0));
+
+                document.querySelectorAll('#naCalculator .btn[data-target="manualNaClMg"]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.dataset.action;
+                        const currentVal = parseFloat(manualInput.value) || 0;
+                        const step = this.constants.SOURCE_STEPS.additionalNaCl;
+                        const newVal = action === 'increase' ? currentVal + step : Math.max(0, currentVal - step);
+                        this.handleStateChange('manualNaClMg', newVal);
+                        manualInput.value = newVal;
+                    });
+                });
+                
+                // Accordion
+                document.getElementById('naCalcAccordionHeader').addEventListener('click', () => this.toggleAccordion());
+            },
+
+            renderOtherSources() {
+                const container = document.getElementById('naCalcAccordionContent');
+                container.innerHTML = '';
+                this.state.otherSources.forEach(source => {
+                    const step = this.constants.SOURCE_STEPS[source.id] || 10;
+                    const row = document.createElement('div');
+                    row.className = 'value-input-row';
+                    row.innerHTML = `
+                        <label for="na-source-${source.id}" class="label">${source.label}</label>
+                        <div class="input-controls">
+                            <button class="btn" data-action="decrease" data-target="${source.id}">-</button>
+                            <input type="number" id="na-source-${source.id}" value="${source.amount}" min="0" step="${step}">
+                            <button class="btn" data-action="increase" data-target="${source.id}">+</button>
+                        </div>
+                        <span class="unit">${source.unit}</span>
+                    `;
+                    container.appendChild(row);
+
+                    const inputEl = document.getElementById(`na-source-${source.id}`);
+                    inputEl.addEventListener('input', () => this.handleOtherSourceChange(source.id, parseFloat(inputEl.value) || 0));
+                    
+                    row.querySelectorAll('.btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const action = btn.dataset.action;
+                            const currentVal = parseFloat(inputEl.value) || 0;
+                            const newVal = action === 'increase' ? currentVal + step : Math.max(0, currentVal - step);
+                            this.handleOtherSourceChange(source.id, newVal);
+                            inputEl.value = newVal;
+                        });
+                    });
+
+                    // Add info text if value > 0
+                    const infoP = document.createElement('p');
+                    infoP.className = 'summary-text';
+                    infoP.style.cssText = 'font-style: italic; font-size: 0.75rem; grid-column: 1 / -1; padding-left: 0.5rem;';
+                    infoP.id = `na-source-info-${source.id}`;
+                    container.appendChild(infoP);
+                });
+            },
+
+            toggleAccordion() {
+                const content = document.getElementById('naCalcAccordionContent');
+                const chevron = document.getElementById('naCalcAccordionChevron');
+                const isOpen = content.classList.toggle('show');
+                chevron.classList.toggle('open', isOpen);
+                document.getElementById('naCalcAccordionHeader').classList.toggle('open', isOpen);
+            },
+            
+            handleStateChange(field, value) {
+                this.state[field] = value;
+                this.updateCalculations();
+            },
+            
+            handleSourceChange(newSource) {
+                this.state.naSource = newSource;
+                const manualContainer = document.getElementById('naCalcManualInputContainer');
+                const caltorInfo = document.getElementById('naCalcFromCaltorInfo');
+                manualContainer.style.display = newSource === 'manualNaCl' ? 'block' : 'none';
+                caltorInfo.style.display = newSource === 'calculatorSetA' ? 'block' : 'none';
+                this.updateCalculations();
+            },
+
+            handleOtherSourceChange(id, amount) {
+                const source = this.state.otherSources.find(s => s.id === id);
+                if (source) {
+                    source.amount = Math.max(0, amount);
+                    this.updateCalculations();
+                }
+            },
+            
+            updateCalculations() {
+                const bw = this.state.bodyWeightKg > 0 ? this.state.bodyWeightKg : 0;
+                
+                // 1. Requirement Calculation
+                const lowerNaReqMmol = bw * 1;
+                const upperNaReqMmol = bw * 2;
+                const lowerNaReqMg = lowerNaReqMmol * this.constants.ATOMIC_WEIGHT_NA;
+                const upperNaReqMg = upperNaReqMmol * this.constants.ATOMIC_WEIGHT_NA;
+
+                // 2. Primary Source Provision
+                let primarySourceNaMg = 0;
+                if (this.state.naSource === 'calculatorSetA') {
+                    primarySourceNaMg = window.caltorSodiumMg || 0;
+                } else if (this.state.naSource === 'manualNaCl') {
+                    primarySourceNaMg = this.state.manualNaClMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                }
+                
+                // 3. Other Sources Provision
+                let otherSourcesNaMgTotal = 0;
+                this.state.otherSources.forEach(source => {
+                    let naMg = 0, naMmol = 0;
+                    const amount = source.amount > 0 ? source.amount : 0;
+                    if (amount > 0) {
+                        switch (source.id) {
+                            case 'additionalNaCl':
+                                naMg = amount * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                                naMmol = amount / this.constants.MOLECULAR_WEIGHT_NACL;
+                                break;
+                            case 'naHco3':
+                                naMg = amount * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NAHCO3);
+                                naMmol = amount / this.constants.MOLECULAR_WEIGHT_NAHCO3;
+                                break;
+                            case 'normalSaline': 
+                                naMmol = this.constants.NORMAL_SALINE_NA_CONC_MEQ_PER_L * (amount / 1000);
+                                naMg = naMmol * this.constants.ATOMIC_WEIGHT_NA;
+                                break;
+                            case 'halfNormalSaline': 
+                                naMmol = this.constants.HALF_NORMAL_SALINE_NA_CONC_MEQ_PER_L * (amount / 1000);
+                                naMg = naMmol * this.constants.ATOMIC_WEIGHT_NA;
+                                break;
+                        }
+                    }
+                    source.naMgEquivalent = naMg;
+                    source.naMmolEquivalent = naMmol;
+                    otherSourcesNaMgTotal += naMg;
+                });
+                
+                // 4. Total Provision & Status
+                const totalNaProvisionMg = primarySourceNaMg + otherSourcesNaMgTotal;
+                const totalNaProvisionMmol = totalNaProvisionMg / this.constants.ATOMIC_WEIGHT_NA;
+
+                let naStatus = 'error';
+                if (bw > 0) {
+                    if (totalNaProvisionMg < lowerNaReqMg) naStatus = 'below';
+                    else if (totalNaProvisionMg > upperNaReqMg) naStatus = 'above';
+                    else naStatus = 'within';
+                }
+                
+                // 5. Supplement Suggestion
+                let naClSupplementNeededMg = 0;
+                if (naStatus === 'below' && lowerNaReqMg > totalNaProvisionMg) {
+                    const deficitNaMg = lowerNaReqMg - totalNaProvisionMg;
+                    naClSupplementNeededMg = deficitNaMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                }
+
+                let suggestedNaClSupplementTsp = 0;
+                let suggestedNaClSupplementMg = 0;
+                let totalNaProvisionWithSupplementMg = totalNaProvisionMg;
+                let totalNaProvisionWithSupplementMmol = totalNaProvisionMmol;
+                let totalNaClEquivalentWithSupplementMg = totalNaProvisionMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+
+                if (naClSupplementNeededMg > 0) {
+                    const rawRequiredTsp = naClSupplementNeededMg / 250 / 8; // 1/8 tsp salt ≈ 250mg NaCl
+                    suggestedNaClSupplementTsp = Math.ceil(rawRequiredTsp) * 0.125; // Round up to nearest 1/8 tsp
+                    suggestedNaClSupplementMg = suggestedNaClSupplementTsp * 8 * 250; 
+
+                    const naFromSuggestedSupplementMg = suggestedNaClSupplementMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                    totalNaProvisionWithSupplementMg = totalNaProvisionMg + naFromSuggestedSupplementMg;
+                    totalNaProvisionWithSupplementMmol = totalNaProvisionWithSupplementMg / this.constants.ATOMIC_WEIGHT_NA;
+                    totalNaClEquivalentWithSupplementMg = totalNaProvisionWithSupplementMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                }
+
+                const results = {
+                    lowerNaReqMg, upperNaReqMg, lowerNaReqMmol, upperNaReqMmol,
+                    totalNaProvisionMg, totalNaProvisionMmol, naStatus,
+                    suggestedNaClSupplementTsp, suggestedNaClSupplementMg,
+                    totalNaProvisionWithSupplementMg, totalNaProvisionWithSupplementMmol,
+                    totalNaClEquivalentWithSupplementMg
+                };
+                this.updateUI(results);
+            },
+            
+            updateUI(results) {
+                // Update inputs from state
+                document.getElementById('naCalcBodyWeight').value = this.state.bodyWeightKg;
+                document.getElementById('naCalcManualNaCl').value = this.state.manualNaClMg;
+                document.getElementById('naCalcFromCaltorInfo').textContent = `Na from Caltor Tab: ${formatValue(window.caltorSodiumMg || 0)} mg`;
+                const manualNaEquivalent = this.state.manualNaClMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
+                document.getElementById('naCalcManualNaEquivalent').textContent = `Elemental Na from this source: ${formatValue(manualNaEquivalent)} mg`;
+
+                this.state.otherSources.forEach(source => {
+                    const inputEl = document.getElementById(`na-source-${source.id}`);
+                    if(inputEl) inputEl.value = source.amount;
+                    const infoEl = document.getElementById(`na-source-info-${source.id}`);
+                    if(infoEl) {
+                        if (source.amount > 0) {
+                            infoEl.textContent = `Na: ${formatValue(source.naMgEquivalent)} mg (${formatValue(source.naMmolEquivalent)} mmol)`;
+                            infoEl.style.display = 'block';
+                        } else {
+                            infoEl.style.display = 'none';
+                        }
+                    }
+                });
+
+                // Update results
+                document.getElementById('naCalcRequirementMg').textContent = `${formatValue(results.lowerNaReqMg)} - ${formatValue(results.upperNaReqMg)} mg`;
+                document.getElementById('naCalcRequirementMmol').textContent = `(${formatValue(results.lowerNaReqMmol)} - ${formatValue(results.upperNaReqMmol)} mmol)`;
+                document.getElementById('naCalcProvisionMg').textContent = `${formatValue(results.totalNaProvisionMg)} mg`;
+                document.getElementById('naCalcProvisionMmol').textContent = `(${formatValue(results.totalNaProvisionMmol)} mmol)`;
+
+                // Update status message
+                const statusEl = document.getElementById('naStatusMessage');
+                statusEl.className = ''; // Clear previous classes
+                if (this.state.bodyWeightKg <= 0) {
+                    statusEl.textContent = "Enter body weight to calculate.";
+                } else {
+                    switch (results.naStatus) {
+                        case 'below':
+                            statusEl.textContent = "Sodium provision is BELOW the recommended range.";
+                            statusEl.classList.add('status-below');
+                            break;
+                        case 'within':
+                            statusEl.textContent = "Sodium provision is WITHIN the recommended range.";
+                            statusEl.classList.add('status-within');
+                            break;
+                        case 'above':
+                            statusEl.textContent = "Sodium provision is ABOVE the recommended range.";
+                            statusEl.classList.add('status-above');
+                            break;
+                    }
+                }
+
+                // Update suggestion box
+                const suggestionContainer = document.getElementById('naSuggestionContainer');
+                if (results.naStatus === 'below' && results.suggestedNaClSupplementTsp > 0) {
+                    const deficitNaMg = results.lowerNaReqMg - results.totalNaProvisionMg;
+                    suggestionContainer.innerHTML = `
+                        <div class="suggestion-box deficit-box">
+                            <p class="label">Sodium Deficit (to reach lower target):</p>
+                            <p class="value">${formatValue(deficitNaMg, 1)} mg Na</p>
+                        </div>
+                        <div class="suggestion-box addition-box">
+                            <p class="label">🧪 Suggested Salt (NaCl) Addition:</p>
+                            <p class="value">${formatTspToFraction(results.suggestedNaClSupplementTsp)}</p>
+                            <p class="sub-value">(Provides approx. ${formatValue(results.suggestedNaClSupplementMg, 0)} mg NaCl)</p>
+                            <p class="italic-info">Based on 1/8 tsp salt ≈ 250mg NaCl. Recommended addition in 1/8 tsp increments.</p>
+                        </div>
+                        <div class="suggestion-box total-box">
+                            <p class="label">Estimated Totals IF Suggested Salt is Added:</p>
+                            <p class="sub-value">New Total Na: ${formatValue(results.totalNaProvisionWithSupplementMg, 0)} mg (${formatValue(results.totalNaProvisionWithSupplementMmol, 1)} mmol)</p>
+                            <p class="sub-value">New Total NaCl Equivalent: ${formatValue(results.totalNaClEquivalentWithSupplementMg, 0)} mg NaCl</p>
+                        </div>
+                    `;
+                } else {
+                    suggestionContainer.innerHTML = '';
+                }
+            }
+        };
+
+        // --- CKD PLANNER APP LOGIC ---
+        const ckdPlannerApp = {
+            state: {},
+            
+            init() {
+                this.state = {
+                    eggWhite: 0, totalMeat: 5, totalVeg: 2, totalOil: 3,
+                    selectedSupplement: null, supplementQuantity: 0,
+                    dialysisType: 'CAPD', dialysateInputs: {},
+                    meals: {
+                        bf: { cho: 5, fruit: 0 }, as: { cho: 0, fruit: 0 },
+                        l: { cho: 5, fruit: 0 }, ps: { cho: 0, fruit: 1 },
+                        d: { cho: 5, fruit: 0 }, ns: { cho: 0, fruit: 1 }
+                    }
+                };
+                this.constants = {
+                    KCAL_CHO_EX: 44, LBV_PER_CHO_EX: 0.4, KCAL_FRUIT_EX: 80, CHO_EQ_PER_FRUIT_EX: 2,
+                    KCAL_VEG_EX: 24, KCAL_MEAT_EX: 75, HBV_PER_MEAT_EX: 1, KCAL_OIL_TSP: 45,
+                    KCAL_EGG_WHITE_PC: 14, PROTEIN_EGG_WHITE_PC: 3.5, PROTEIN_PER_LBV_EX: 2, PROTEIN_PER_HBV_EX: 7,
+                    DIALYSATE_OPTIONS: [
+                        { id: 'conc_1.5', concentrationLabel: '1.5%' }, { id: 'conc_2.5', concentrationLabel: '2.5%' },
+                        { id: 'conc_7.5', concentrationLabel: '7.5%' }, { id: 'conc_2.3', concentrationLabel: '2.3%' }
+                    ],
+                    DIALYSATE_KCAL_MAP: {
+                        'CAPD_1.5%': { 2: 61.2, 2.5: 76.5 }, 'CAPD_2.5%': { 2: 102, 2.5: 127.5 }, 'CAPD_7.5%': { 2: 102 }, 'CAPD_2.3%': { 2: 94 },
+                        'APD_1.5%': { 2: 40.8, 5: 102 }, 'APD_2.5%': { 2: 68, 5: 170 }, 'APD_7.5%': { 2: 102 }, 'APD_2.3%': { 2: 94, 5: 117.5 }
+                    },
+                    DIALYSATE_AVAILABLE_VOLUMES: {
+                        'CAPD_1.5%': [2, 2.5], 'CAPD_2.5%': [2, 2.5], 'CAPD_7.5%': [2], 'CAPD_2.3%': [2],
+                        'APD_1.5%': [2, 5], 'APD_2.5%': [2, 5], 'APD_7.5%': [2], 'APD_2.3%': [2, 5]
+                    },
+                    MEAL_SECTIONS: [
+                        { key: 'bf', title: 'Breakfast (B/F)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'as', title: 'AM Snacks (AS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] },
+                        { key: 'l', title: 'Lunch (L)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'ps', title: 'PM Snacks (PS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] },
+                        { key: 'd', title: 'Dinner (D)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'ns', title: 'Night Snacks (NS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] }
+                    ]
+                };
+                
+                document.getElementById('ckd-supplement-search').addEventListener('input', () => this.filterSupplements());
+                window.addEventListener('click', e => {
+                    const modal = document.getElementById('ckd-supplement-modal');
+                    if (e.target === modal) this.closeSupplementModal();
+                });
+                
+                this.initializeDialysateInputs();
+                this.generateMealSections();
+                this.populateSupplementList();
+                this.updateCalculations();
+            },
+            
+            initializeDialysateInputs() {
+                this.constants.DIALYSATE_OPTIONS.forEach(opt => {
+                    const key = `${this.state.dialysisType}_${opt.concentrationLabel}`;
+                    const availableVolumes = this.constants.DIALYSATE_AVAILABLE_VOLUMES[key] || [2];
+                    this.state.dialysateInputs[opt.id] = { concentrationLabel: opt.concentrationLabel, currentVolumeLiters: availableVolumes[0], numBags: 0 };
+                });
+                this.renderDialysateInputs();
+            },
+            
+            renderDialysateInputs() {
+                const container = document.getElementById('ckd-dialysate-inputs');
+                container.innerHTML = '';
+                this.constants.DIALYSATE_OPTIONS.forEach(opt => {
+                    const input = this.state.dialysateInputs[opt.id];
+                    const key = `${this.state.dialysisType}_${input.concentrationLabel}`;
+                    const availableVolumes = this.constants.DIALYSATE_AVAILABLE_VOLUMES[key] || [input.currentVolumeLiters];
+                    const isVolumeChangeable = availableVolumes.length > 1;
+                    const row = document.createElement('div');
+                    row.className = 'dialysate-row';
+                    row.innerHTML = `
+                        <div class="dialysate-label">
+                            <span>${input.concentrationLabel}</span><span>×</span>
+                            <button class="volume-btn" onclick="ckdPlannerApp.cycleVolume('${opt.id}')" ${!isVolumeChangeable ? 'disabled' : ''}>${input.currentVolumeLiters}L</button>
+                            <span>×</span>
+                        </div>
+                        <div class="input-controls">
+                            <button class="btn" onclick="ckdPlannerApp.changeDialysateBags('${opt.id}', -1)">-</button>
+                            <span class="input-value">${input.numBags}</span>
+                            <button class="btn" onclick="ckdPlannerApp.changeDialysateBags('${opt.id}', 1)">+</button>
+                        </div>
+                        <span class="unit">bag(s)</span>`;
+                    container.appendChild(row);
+                });
+            },
+            
+            generateMealSections() {
+                const container = document.getElementById('ckd-meal-sections');
+                container.innerHTML = '';
+                this.constants.MEAL_SECTIONS.forEach((section, index) => {
+                    const mealCard = document.createElement('div');
+                    mealCard.className = 'card';
+                    let fieldsHTML = '';
+                    section.fields.forEach(field => {
+                        const value = this.state.meals[section.key][field.key] || 0;
+                        const icon = field.key === 'fruit' ? '🍎' : '🌾';
+                        fieldsHTML += `
+                            <div class="input-row">
+                                <div class="input-label"><span class="icon">${icon}</span>${field.label}</div>
+                                <div class="input-controls">
+                                    <button class="btn" onclick="ckdPlannerApp.changeMealValue('${section.key}', '${field.key}', -1)">-</button>
+                                    <span class="input-value" id="ckd-${section.key}-${field.key}">${value}</span>
+                                    <span class="unit">${field.unit}</span>
+                                    <button class="btn" onclick="ckdPlannerApp.changeMealValue('${section.key}', '${field.key}', 1)">+</button>
+                                </div>
+                            </div>`;
+                    });
+                    mealCard.innerHTML = `
+                        <div class="accordion-header" onclick="ckdPlannerApp.toggleAccordion('${section.key}')">
+                            <div class="input-label"><span class="icon">${section.icon}</span>${section.title}</div>
+                            <span class="chevron" id="ckd-${section.key}-chevron">▼</span>
+                        </div>
+                        <div class="accordion-content show" id="ckd-${section.key}-content">${fieldsHTML}</div>`;
+                    container.appendChild(mealCard);
+                });
+            },
+            
+            toggleAccordion(id) {
+                const content = document.getElementById(`ckd-${id}-content`);
+                const chevron = document.getElementById(`ckd-${id}-chevron`);
+                content.classList.toggle('show');
+                chevron.classList.toggle('open');
+            },
+            
+            toggleAllMeals() {
+                const collapseText = document.getElementById('ckd-collapse-text');
+                const allOpen = this.constants.MEAL_SECTIONS.every(section => document.getElementById(`ckd-${section.key}-content`).classList.contains('show'));
+                this.constants.MEAL_SECTIONS.forEach(section => {
+                    const content = document.getElementById(`ckd-${section.key}-content`);
+                    const chevron = document.getElementById(`ckd-${section.key}-chevron`);
+                    if (allOpen) { content.classList.remove('show'); chevron.classList.remove('open'); }
+                    else { content.classList.add('show'); chevron.classList.add('open'); }
+                });
+                collapseText.textContent = allOpen ? 'Expand All Meals' : 'Collapse All Meals';
+            },
+            
+            changeValue(field, delta) {
+                if (field === 'totalMeat') {
+                    this.state[field] = Math.max(0, this.state[field] + delta);
+                    document.getElementById(`ckd${field.charAt(0).toUpperCase() + field.slice(1)}`).textContent = this.state[field].toFixed(1);
+                } else {
+                    this.state[field] = Math.max(0, this.state[field] + delta);
+                    document.getElementById(`ckd${field.charAt(0).toUpperCase() + field.slice(1)}`).textContent = this.state[field];
+                }
+                this.updateCalculations();
+            },
+            
+            changeMealValue(mealKey, field, delta) {
+                this.state.meals[mealKey][field] = Math.max(0, this.state.meals[mealKey][field] + delta);
+                document.getElementById(`ckd-${mealKey}-${field}`).textContent = this.state.meals[mealKey][field];
+                this.updateCalculations();
+            },
+            
+            changeDialysisType(type) {
+                this.state.dialysisType = type;
+                this.initializeDialysateInputs();
+                this.updateCalculations();
+            },
+            
+            changeDialysateBags(id, delta) {
+                this.state.dialysateInputs[id].numBags = Math.max(0, this.state.dialysateInputs[id].numBags + delta);
+                this.renderDialysateInputs();
+                this.updateCalculations();
+            },
+            
+            cycleVolume(id) {
+                const input = this.state.dialysateInputs[id];
+                const key = `${this.state.dialysisType}_${input.concentrationLabel}`;
+                const availableVolumes = this.constants.DIALYSATE_AVAILABLE_VOLUMES[key] || [input.currentVolumeLiters];
+                const currentIndex = availableVolumes.indexOf(input.currentVolumeLiters);
+                const nextIndex = (currentIndex + 1) % availableVolumes.length;
+                input.currentVolumeLiters = availableVolumes[nextIndex];
+                this.renderDialysateInputs();
+                this.updateCalculations();
+            },
+
+            updateCalculations() {
+                let totalKcal = 0, totalLbvExchanges = 0, choDisplayParts = [];
+                Object.keys(this.state.meals).forEach(mealKey => {
+                    const meal = this.state.meals[mealKey];
+                    let mealCho = [];
+                    if (meal.cho > 0) {
+                        totalKcal += meal.cho * this.constants.KCAL_CHO_EX;
+                        totalLbvExchanges += meal.cho * this.constants.LBV_PER_CHO_EX;
+                        mealCho.push(meal.cho.toString());
+                    }
+                    if (meal.fruit > 0) {
+                        totalKcal += meal.fruit * this.constants.KCAL_FRUIT_EX;
+                        if (meal.cho > 0) mealCho[mealCho.length - 1] += 'C';
+                        mealCho.push(`${meal.fruit * this.constants.CHO_EQ_PER_FRUIT_EX}F`);
+                    }
+                    choDisplayParts.push(mealCho.length > 0 ? mealCho.join(' + ') : '0');
+                });
+
+                totalKcal += this.state.totalMeat * this.constants.KCAL_MEAT_EX;
+                totalKcal += this.state.totalVeg * this.constants.KCAL_VEG_EX;
+                totalKcal += this.state.eggWhite * this.constants.KCAL_EGG_WHITE_PC;
+                totalKcal += this.state.totalOil * this.constants.KCAL_OIL_TSP;
+                const totalHbvExchanges = this.state.totalMeat * this.constants.HBV_PER_MEAT_EX;
+                let supplementKcal = 0, supplementProtein = 0;
+                if (this.state.selectedSupplement && this.state.supplementQuantity > 0) {
+                    const supp = this.state.selectedSupplement;
+                    supplementKcal = (parseFloat(supp.Energy) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                    supplementProtein = (parseFloat(supp.Protein) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                }
+
+                let dialysateKcal = 0;
+                Object.values(this.state.dialysateInputs).forEach(input => {
+                    const key = `${this.state.dialysisType}_${input.concentrationLabel}`;
+                    const kcalPerBag = this.constants.DIALYSATE_KCAL_MAP[key]?.[input.currentVolumeLiters] || 0;
+                    dialysateKcal += kcalPerBag * input.numBags;
+                });
+
+                const totalKcalWithoutDialysate = totalKcal + supplementKcal;
+                const finalTotalKcal = totalKcalWithoutDialysate + dialysateKcal;
+                const proteinFromExchanges = (totalLbvExchanges * this.constants.PROTEIN_PER_LBV_EX) + (totalHbvExchanges * this.constants.PROTEIN_PER_HBV_EX);
+                const eggWhiteProtein = this.state.eggWhite * this.constants.PROTEIN_EGG_WHITE_PC;
+                const finalTotalProtein = proteinFromExchanges + eggWhiteProtein + supplementProtein;
+
+                document.getElementById('ckdMainCalories').textContent = dialysateKcal > 0 ? `${Math.round(totalKcalWithoutDialysate)} Kcal (${Math.round(finalTotalKcal)} Kcal with Dialysate), ${finalTotalProtein.toFixed(1)}g protein` : `${Math.round(totalKcalWithoutDialysate)} Kcal, ${finalTotalProtein.toFixed(1)}g protein`;
+                const supplementIndicator = supplementKcal > 0 || supplementProtein > 0 ? " with Supp." : "";
+                const dialysateIndicator = dialysateKcal > 0 ? " with Dialysate" : "";
+                document.getElementById('ckdExchangeDisplay').textContent = `${choDisplayParts.join('/')}, ${totalLbvExchanges.toFixed(1)}LBV, ${totalHbvExchanges.toFixed(1)}HBV, ${this.state.eggWhite}pc Eggwhite, ${this.state.totalOil.toFixed(1)}tsp oil${supplementIndicator}${dialysateIndicator}`;
+                document.getElementById('ckd-dialysate-total').textContent = Math.round(dialysateKcal);
+            },
+            
+            populateSupplementList() {
+                const list = document.getElementById('ckd-supplement-list');
+                list.innerHTML = '';
+                supplementData.forEach(supplement => {
+                    const item = document.createElement('div');
+                    item.className = 'supplement-item';
+                    item.onclick = () => this.selectSupplement(supplement);
+                    item.innerHTML = `<div class="supplement-name">${supplement.Display_Name} ${supplement.Display_Name_Chi !== 'NA' ? `(${supplement.Display_Name_Chi})` : ''}</div><div class="supplement-details">Energy: ${supplement.Energy} kcal, Protein: ${supplement.Protein}g per ${supplement.serving_Num}${supplement.Serving_unit}</div>`;
+                    list.appendChild(item);
+                });
+            },
+            
+            filterSupplements() {
+                const searchTerm = document.getElementById('ckd-supplement-search').value.toLowerCase();
+                const list = document.getElementById('ckd-supplement-list');
+                list.innerHTML = '';
+                const filtered = supplementData.filter(s => s.Display_Name.toLowerCase().includes(searchTerm) || (s.Display_Name_Chi !== 'NA' && s.Display_Name_Chi.toLowerCase().includes(searchTerm)));
+                filtered.forEach(supplement => {
+                    const item = document.createElement('div');
+                    item.className = 'supplement-item';
+                    item.onclick = () => this.selectSupplement(supplement);
+                    item.innerHTML = `<div class="supplement-name">${supplement.Display_Name} ${supplement.Display_Name_Chi !== 'NA' ? `(${supplement.Display_Name_Chi})` : ''}</div><div class="supplement-details">Energy: ${supplement.Energy} kcal, Protein: ${supplement.Protein}g per ${supplement.serving_Num}${supplement.Serving_unit}</div>`;
+                    list.appendChild(item);
+                });
+            },
+            
+            openSupplementModal() {
+                document.getElementById('ckd-supplement-modal').style.display = 'flex';
+                document.getElementById('ckd-supplement-search').value = '';
+                this.populateSupplementList();
+            },
+            
+            closeSupplementModal() { document.getElementById('ckd-supplement-modal').style.display = 'none'; },
+            
+            selectSupplement(supplement) {
+                this.state.selectedSupplement = supplement;
+                if (this.state.supplementQuantity === 0) {
+                    this.state.supplementQuantity = 1;
+                    document.getElementById('ckdSupplementQuantity').textContent = '1';
+                }
+                document.getElementById('ckd-selected-supplement').textContent = supplement.Display_Name_Chi !== 'NA' ? `${supplement.Display_Name} (${supplement.Display_Name_Chi})` : supplement.Display_Name;
+                document.getElementById('ckd-supplement-quantity-row').style.display = 'flex';
+                document.getElementById('ckd-supplement-unit').textContent = this.state.supplementQuantity === 1 ? 'serving' : 'servings';
+                this.closeSupplementModal();
+                this.updateCalculations();
+            },
+            
+            clearSupplement() {
+                this.state.selectedSupplement = null;
+                this.state.supplementQuantity = 0;
+                document.getElementById('ckd-selected-supplement').textContent = 'Select Supplement...';
+                document.getElementById('ckd-supplement-quantity-row').style.display = 'none';
+                document.getElementById('ckdSupplementQuantity').textContent = '0';
+                this.closeSupplementModal();
+                this.updateCalculations();
+            }
+        };
+
+        // --- MEAL PLAN (PERI) APP LOGIC ---
+        const periPlannerApp = {
+            state: {},
+            init() {
+                this.resetToDefaults(false); // Initialize without re-rendering everything
+                
+                this.constants = {
+                    KCAL_CHO: 44, PROTEIN_CHO: 1, KCAL_FRUIT: 80, PROTEIN_FRUIT: 0,
+                    KCAL_VEG: 24, PROTEIN_VEG: 1, 
+                    KCAL_LEAN_MEAT: 55, PROTEIN_LEAN_MEAT: 7,
+                    KCAL_MED_FAT_MEAT: 75, PROTEIN_MED_FAT_MEAT: 7,
+                    KCAL_OIL: 45, PROTEIN_OIL: 0, KCAL_EGG_WHITE: 14, PROTEIN_EGG_WHITE: 3.5,
+                    KCAL_SKIM_MILK: 100, PROTEIN_SKIM_MILK: 8, KCAL_SUGAR: 100, PROTEIN_SUGAR: 0,
+                    MEAL_SECTIONS: [
+                        { key: 'bf', title: 'Breakfast (B/F)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'as', title: 'AM Snacks (AS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] },
+                        { key: 'l', title: 'Lunch (L)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'ps', title: 'PM Snacks (PS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] },
+                        { key: 'd', title: 'Dinner (D)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
+                        { key: 'ns', title: 'Night Snacks (NS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] }
+                    ]
+                };
+                
+                document.getElementById('peri-supplement-search').addEventListener('input', () => this.filterSupplements());
+                window.addEventListener('click', e => {
+                    const modal = document.getElementById('peri-supplement-modal');
+                    if (e.target === modal) this.closeSupplementModal();
+                });
+                
+                this.generateMealSections();
+                this.populateSupplementList();
+                this.updateCalculations();
+                this.updateInitialUI();
+            },
+            
+            resetToDefaults(render = true) {
+                this.state = {
+                    leanMeat: 7, medFatMeat: 0,
+                    totalVeg: 3, totalOil: 3, skimMilk: 1,
+                    eggWhite: 0, sugar: 0,
+                    selectedSupplement: null, supplementQuantity: 0,
+                    meals: {
+                        bf: { cho: 4, fruit: 0 }, as: { cho: 1, fruit: 0 },
+                        l: { cho: 5, fruit: 0 }, ps: { cho: 0, fruit: 1 },
+                        d: { cho: 5, fruit: 0 }, ns: { cho: 0, fruit: 1 }
+                    }
+                };
+                if (render) {
+                    this.updateInitialUI();
+                    this.updateCalculations();
+                }
+            },
+            
+            updateInitialUI() {
+                document.getElementById('periSkimMilk').textContent = this.state.skimMilk;
+                document.getElementById('periLeanMeat').textContent = this.state.leanMeat.toFixed(1);
+                document.getElementById('periMedFatMeat').textContent = this.state.medFatMeat.toFixed(1);
+                document.getElementById('periEggWhite').textContent = this.state.eggWhite;
+                document.getElementById('periTotalVeg').textContent = this.state.totalVeg;
+                document.getElementById('periTotalOil').textContent = this.state.totalOil;
+                document.getElementById('periSugar').textContent = this.state.sugar;
+
+                this.constants.MEAL_SECTIONS.forEach(section => {
+                    section.fields.forEach(field => {
+                         document.getElementById(`peri-${section.key}-${field.key}`).textContent = this.state.meals[section.key][field.key];
+                    });
+                });
+            },
+            
+            generateMealSections() {
+                const container = document.getElementById('peri-meal-sections');
+                container.innerHTML = '';
+                this.constants.MEAL_SECTIONS.forEach((section, index) => {
+                    const mealCard = document.createElement('div');
+                    mealCard.className = 'card';
+                    let fieldsHTML = '';
+                    section.fields.forEach(field => {
+                        const value = this.state.meals[section.key][field.key] || 0;
+                        const icon = field.key === 'fruit' ? '🍎' : '🌾';
+                        fieldsHTML += `
+                            <div class="input-row">
+                                <div class="input-label"><span class="icon">${icon}</span>${field.label}</div>
+                                <div class="input-controls">
+                                    <button class="btn" onclick="periPlannerApp.changeMealValue('${section.key}', '${field.key}', -1)">-</button>
+                                    <span class="input-value" id="peri-${section.key}-${field.key}">${value}</span>
+                                    <span class="unit">${field.unit}</span>
+                                    <button class="btn" onclick="periPlannerApp.changeMealValue('${section.key}', '${field.key}', 1)">+</button>
+                                </div>
+                            </div>`;
+                    });
+                    mealCard.innerHTML = `
+                        <div class="accordion-header open" onclick="periPlannerApp.toggleAccordion('${section.key}')">
+                            <div class="input-label"><span class="icon">${section.icon}</span>${section.title}</div>
+                            <span class="chevron open" id="peri-${section.key}-chevron">▼</span>
+                        </div>
+                        <div class="accordion-content show" id="peri-${section.key}-content">${fieldsHTML}</div>`;
+                    container.appendChild(mealCard);
+                });
+            },
+            
+            toggleAccordion(id) {
+                document.getElementById(`peri-${id}-content`).classList.toggle('show');
+                document.getElementById(`peri-${id}-chevron`).classList.toggle('open');
+            },
+            
+            toggleAllMeals() {
+                const collapseText = document.getElementById('peri-collapse-text');
+                const allOpen = this.constants.MEAL_SECTIONS.every(s => document.getElementById(`peri-${s.key}-content`).classList.contains('show'));
+                this.constants.MEAL_SECTIONS.forEach(s => {
+                    const content = document.getElementById(`peri-${s.key}-content`);
+                    const chevron = document.getElementById(`peri-${s.key}-chevron`);
+                    if(allOpen) { content.classList.remove('show'); chevron.classList.remove('open'); }
+                    else { content.classList.add('show'); chevron.classList.add('open'); }
+                });
+                collapseText.textContent = allOpen ? 'Expand All' : 'Collapse All';
+            },
+            
+            changeValue(field, delta) {
+                const meatFields = ['leanMeat', 'medFatMeat'];
+                if (meatFields.includes(field)) {
+                    this.state[field] = Math.max(0, this.state[field] + delta);
+                    document.getElementById(`peri${field.charAt(0).toUpperCase() + field.slice(1)}`).textContent = this.state[field].toFixed(1);
+                } else {
+                    this.state[field] = Math.max(0, this.state[field] + delta);
+                    document.getElementById(`peri${field.charAt(0).toUpperCase() + field.slice(1)}`).textContent = this.state[field];
+                }
+                this.updateCalculations();
+            },
+            
+            changeMealValue(mealKey, field, delta) {
+                this.state.meals[mealKey][field] = Math.max(0, this.state.meals[mealKey][field] + delta);
+                document.getElementById(`peri-${mealKey}-${field}`).textContent = this.state.meals[mealKey][field];
+                this.updateCalculations();
+            },
+            
+            updateCalculations() {
+                let totalKcal = 0, totalProtein = 0, totalMealCho = 0, totalMealFruit = 0;
+                Object.values(this.state.meals).forEach(meal => { totalMealCho += meal.cho; totalMealFruit += meal.fruit; });
+                totalKcal += totalMealCho * this.constants.KCAL_CHO;
+                totalProtein += totalMealCho * this.constants.PROTEIN_CHO;
+                totalKcal += totalMealFruit * this.constants.KCAL_FRUIT;
+                totalProtein += totalMealFruit * this.constants.PROTEIN_FRUIT;
+
+                totalKcal += this.state.leanMeat * this.constants.KCAL_LEAN_MEAT;
+                totalProtein += this.state.leanMeat * this.constants.PROTEIN_LEAN_MEAT;
+                totalKcal += this.state.medFatMeat * this.constants.KCAL_MED_FAT_MEAT;
+                totalProtein += this.state.medFatMeat * this.constants.PROTEIN_MED_FAT_MEAT;
+                
+                totalKcal += this.state.totalVeg * this.constants.KCAL_VEG;
+                totalProtein += this.state.totalVeg * this.constants.PROTEIN_VEG;
+                totalKcal += this.state.eggWhite * this.constants.KCAL_EGG_WHITE;
+                totalProtein += this.state.eggWhite * this.constants.PROTEIN_EGG_WHITE;
+                totalKcal += this.state.skimMilk * this.constants.KCAL_SKIM_MILK;
+                totalProtein += this.state.skimMilk * this.constants.PROTEIN_SKIM_MILK;
+                totalKcal += this.state.totalOil * this.constants.KCAL_OIL;
+                totalKcal += this.state.sugar * this.constants.KCAL_SUGAR;
+
+                let supplementKcal = 0, supplementProtein = 0;
+                const supplementInfoEl = document.getElementById('peri-supplement-nutrition-info');
+                if (this.state.selectedSupplement && this.state.supplementQuantity > 0) {
+                    const supp = this.state.selectedSupplement;
+                    supplementKcal = (parseFloat(supp.Energy) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                    supplementProtein = (parseFloat(supp.Protein) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                    totalKcal += supplementKcal;
+                    totalProtein += supplementProtein;
+                    supplementInfoEl.textContent = `+ ${Math.round(supplementKcal)} Kcal, ${supplementProtein.toFixed(1)}g protein`;
+                    supplementInfoEl.style.display = 'block';
+                } else {
+                    supplementInfoEl.style.display = 'none';
+                }
+
+                document.getElementById('periMainCalories').textContent = `${Math.round(totalKcal)} Kcal, ${totalProtein.toFixed(1)}g protein`;
+                const totalMeatEx = this.state.leanMeat + this.state.medFatMeat;
+                const choBreakdownString = this.constants.MEAL_SECTIONS.map(m => {
+                    const meal = this.state.meals[m.key];
+                    let parts = [];
+                    if (meal.cho > 0) parts.push(meal.cho.toString());
+                    if (meal.fruit > 0) parts.push((meal.fruit * 2).toString() + 'F');
+                    return parts.length === 0 ? '0' : parts.join('+');
+                }).join('/');
+                const supplementIndicator = this.state.selectedSupplement && this.state.supplementQuantity > 0 ? " with Supp." : "";
+                document.getElementById('periExchangeDisplay').textContent = `${choBreakdownString}, ${this.state.skimMilk} cup milk, ${totalMeatEx.toFixed(1)} ex Meat, ${this.state.eggWhite}pc Eggwhite, ${this.state.totalOil}tsp oil, ${this.state.sugar} frequency sugar${supplementIndicator}`;
+            },
+            
+            populateSupplementList() {
+                 const list = document.getElementById('peri-supplement-list');
+                list.innerHTML = '';
+                supplementData.forEach(supplement => {
+                    const item = document.createElement('div');
+                    item.className = 'supplement-item';
+                    item.onclick = () => this.selectSupplement(supplement);
+                    item.innerHTML = `<div class="supplement-name">${supplement.Display_Name} ${supplement.Display_Name_Chi !== 'NA' ? `(${supplement.Display_Name_Chi})` : ''}</div><div class="supplement-details">Energy: ${supplement.Energy} kcal, Protein: ${supplement.Protein}g per ${supplement.serving_Num}${supplement.Serving_unit}</div>`;
+                    list.appendChild(item);
+                });
+            },
+            filterSupplements() {
+                const searchTerm = document.getElementById('peri-supplement-search').value.toLowerCase();
+                const list = document.getElementById('peri-supplement-list');
+                list.innerHTML = '';
+                const filtered = supplementData.filter(s => s.Display_Name.toLowerCase().includes(searchTerm) || (s.Display_Name_Chi !== 'NA' && s.Display_Name_Chi.toLowerCase().includes(searchTerm)));
+                filtered.forEach(supplement => {
+                    const item = document.createElement('div');
+                    item.className = 'supplement-item';
+                    item.onclick = () => this.selectSupplement(supplement);
+                    item.innerHTML = `<div class="supplement-name">${supplement.Display_Name} ${supplement.Display_Name_Chi !== 'NA' ? `(${supplement.Display_Name_Chi})` : ''}</div><div class="supplement-details">Energy: ${supplement.Energy} kcal, Protein: ${supplement.Protein}g per ${supplement.serving_Num}${supplement.Serving_unit}</div>`;
+                    list.appendChild(item);
+                });
+            },
+            openSupplementModal() {
+                document.getElementById('peri-supplement-modal').style.display = 'flex';
+                document.getElementById('peri-supplement-search').value = '';
+                this.populateSupplementList();
+            },
+            closeSupplementModal() { document.getElementById('peri-supplement-modal').style.display = 'none'; },
+            
+            selectSupplement(supplement) {
+                this.state.selectedSupplement = supplement;
+                if (this.state.supplementQuantity === 0) {
+                    this.state.supplementQuantity = 1;
+                    document.getElementById('periSupplementQuantity').textContent = '1';
+                }
+                document.getElementById('peri-selected-supplement').textContent = supplement.Display_Name_Chi !== 'NA' ? `${supplement.Display_Name} (${supplement.Display_Name_Chi})` : supplement.Display_Name;
+                document.getElementById('peri-supplement-quantity-row').style.display = 'flex';
+                document.getElementById('peri-supplement-unit').textContent = this.state.supplementQuantity === 1 ? 'serving' : 'servings';
+                this.closeSupplementModal();
+                this.updateCalculations();
+            },
+            clearSupplement() {
+                this.state.selectedSupplement = null; this.state.supplementQuantity = 0;
+                document.getElementById('peri-selected-supplement').textContent = 'Select Supplement...';
+                document.getElementById('peri-supplement-quantity-row').style.display = 'none';
+                document.getElementById('periSupplementQuantity').textContent = '0';
+                document.getElementById('peri-supplement-nutrition-info').style.display = 'none';
+                this.closeSupplementModal();
+                this.updateCalculations();
+            }
+        };
+
+    </script>
+</body>
+</html>
