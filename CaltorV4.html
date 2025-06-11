@@ -86,17 +86,6 @@
             font-weight: 600;
             color: var(--foreground);
         }
-        
-        h2.calculator-heading, #naCalculator h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--foreground);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
 
         .theme-toggle {
             background: none;
@@ -111,13 +100,7 @@
             margin-bottom: 1rem;
             border-bottom: 1px solid var(--border);
             overflow-x: auto;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
         }
-        .tabs::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
-
 
         .tab {
             padding: 0.75rem 1rem;
@@ -398,25 +381,21 @@
 
 
         /* --- STYLES FOR NUTRIENT BROWSER & CALCULATOR TABS --- */
-        #nutrientBrowser .card, #caltor .card, #naCalculator .card {
+        #nutrientBrowser .card, #caltor .card {
             border: 1px solid var(--border);
             border-radius: var(--radius);
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             background-color: var(--card);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease;
+            cursor: pointer;
         }
-        #nutrientBrowser .card:not(.non-clickable):active, #caltor .card:not(.non-clickable):active, #naCalculator .card:not(.non-clickable):active {
+        #nutrientBrowser .card:active, #caltor .card:active {
             transform: scale(0.98);
         }
-        #nutrientBrowser .card:not(.non-clickable), #caltor .card:not(.non-clickable) {
-             cursor: pointer;
-        }
-        #nutrientBrowser .card-content, #caltor .card-content, #naCalculator .card-content {
+        #nutrientBrowser .card-content, #caltor .card-content {
             padding: 1rem;
-        }
-        #nutrientBrowser .card-flex-content {
             display: flex;
             justify-content: space-between;
         }
@@ -473,19 +452,19 @@
         #nutrientBrowser .custom-select-item-title, #caltor .custom-select-item-title { font-weight: 500; }
         #nutrientBrowser .custom-select-item-subtitle, #caltor .custom-select-item-subtitle { font-size: 0.75rem; color: var(--muted-foreground); }
         #nutrientBrowser .calculator-section, #caltor .calculator-section { margin-bottom: 1.5rem; }
+        #nutrientBrowser .calculator-heading, #caltor .calculator-heading { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--foreground); }
         #nutrientBrowser select, #caltor select {
             width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius);
             background-color: var(--input); color: var(--foreground); font-size: 0.875rem; margin-bottom: 1rem;
         }
-        #caltor .input-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
-        #caltor .input-label { color: var(--muted-foreground); font-size: 0.875rem; }
-        #nutrientBrowser input[type="number"], #caltor input[type="number"], #naCalculator input[type="number"] {
+        #nutrientBrowser .input-row, #caltor .input-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+        #nutrientBrowser .input-label, #caltor .input-label { color: var(--muted-foreground); font-size: 0.875rem; }
+        #nutrientBrowser input[type="number"], #caltor input[type="number"] {
             width: 5rem; padding: 0.5rem; text-align: center; border: 1px solid var(--border); border-radius: var(--radius);
             background-color: var(--input); color: var(--foreground); -moz-appearance: textfield;
         }
         #nutrientBrowser input[type="number"]::-webkit-outer-spin-button, #nutrientBrowser input[type="number"]::-webkit-inner-spin-button, 
-        #caltor input[type="number"]::-webkit-outer-spin-button, #caltor input[type="number"]::-webkit-inner-spin-button,
-        #naCalculator input[type="number"]::-webkit-outer-spin-button, #naCalculator input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #caltor input[type="number"]::-webkit-outer-spin-button, #caltor input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         #nutrientBrowser .input-unit, #caltor .input-unit { color: var(--muted-foreground); font-size: 0.75rem; min-width: 2rem; text-align: right; }
         #nutrientBrowser .results-table, #caltor .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         #nutrientBrowser .results-table th, #caltor .results-table th {
@@ -553,7 +532,7 @@
         }
 
 
-        /* --- STYLES FOR CKD, MEAL PLAN & NaCAL TABS --- */
+        /* --- STYLES FOR CKD & MEAL PLAN TABS --- */
         #ckdPlanner .sticky-header, #mealPlan .sticky-header {
             position: sticky; top: 0; z-index: 100;
             background: var(--card);
@@ -566,11 +545,19 @@
             background: var(--primary); color: var(--primary-foreground);
             padding: 12px; text-align: center; border-radius: var(--radius) var(--radius) 0 0;
         }
-
-        #ckdPlanner .header-secondary, #mealPlan .header-secondary {
+        
+        .header-secondary {
             background: color-mix(in srgb, var(--primary) 80%, black); color: var(--primary-foreground);
             padding: 12px; text-align: center; font-size: 14px; border-radius: 0 0 var(--radius) var(--radius);
         }
+        
+        /* New class for secondary header with multiple lines */
+        .header-secondary.multi-line {
+            padding: 8px 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
 
         #ckdPlanner .card, #mealPlan .card {
             background: var(--card);
@@ -580,44 +567,38 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        #ckdPlanner .accordion-header, #mealPlan .accordion-header, #naCalculator .accordion-header {
+        #ckdPlanner .accordion-header, #mealPlan .accordion-header {
             padding: 12px 16px; cursor: pointer; background: var(--secondary);
-            border-radius: var(--radius); border-bottom: 1px solid var(--border);
+            border-radius: var(--radius) var(--radius) 0 0; border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between; user-select: none;
         }
-         #naCalculator .accordion-header { border-radius: var(--radius) var(--radius) 0 0; }
-
-        #ckdPlanner .accordion-header:hover, #mealPlan .accordion-header:hover, #naCalculator .accordion-header:hover {
+        #ckdPlanner .accordion-header:hover, #mealPlan .accordion-header:hover {
             background: var(--muted);
         }
-        #ckdPlanner .accordion-header.open, #mealPlan .accordion-header.open, #naCalculator .accordion-header.open {
+        #ckdPlanner .accordion-header.open {
             background: color-mix(in srgb, var(--primary) 10%, transparent);
         }
-        #ckdPlanner .accordion-content, #mealPlan .accordion-content, #naCalculator .accordion-content {
+        #ckdPlanner .accordion-content, #mealPlan .accordion-content {
             padding: 16px; display: none;
         }
-        #ckdPlanner .accordion-content.show, #mealPlan .accordion-content.show, #naCalculator .accordion-content.show {
+        #ckdPlanner .accordion-content.show, #mealPlan .accordion-content.show {
             display: block;
         }
 
-        #ckdPlanner .chevron, #mealPlan .chevron, #naCalculator .chevron {
+        #ckdPlanner .chevron, #mealPlan .chevron {
             width: 16px; height: 16px; transform: rotate(0deg); transition: transform 0.2s;
         }
-        #ckdPlanner .chevron.open, #mealPlan .chevron.open, #naCalculator .chevron.open {
+        #ckdPlanner .chevron.open, #mealPlan .chevron.open {
             transform: rotate(180deg);
         }
 
-        #ckdPlanner .radio-group, #mealPlan .radio-group, #naCalculator .radio-group {
-            display: flex; gap: 1rem; margin-bottom: 1rem;
-            flex-direction: column;
+        #ckdPlanner .radio-group, #mealPlan .radio-group {
+            display: flex; gap: 16px; margin-bottom: 16px;
         }
-        @media (min-width: 640px) {
-             #naCalculator .radio-group { flex-direction: row; }
+        #ckdPlanner .radio-option, #mealPlan .radio-option {
+            display: flex; align-items: center; gap: 8px;
         }
-        #ckdPlanner .radio-option, #mealPlan .radio-option, #naCalculator .radio-option {
-            display: flex; align-items: center; gap: 8px; cursor: pointer;
-        }
-        #ckdPlanner .radio-input, #mealPlan .radio-input, #naCalculator .radio-input {
+        #ckdPlanner .radio-input, #mealPlan .radio-input {
             width: 16px; height: 16px;
         }
         
@@ -661,85 +642,11 @@
             border-radius: var(--radius); padding: 6px 12px;
             font-size: 12px; cursor: pointer; 
         }
-
         
+        #ckd-supplement-nutrition-info,
         #mealPlan #peri-supplement-nutrition-info {
             text-align: right; font-size: 14px; font-weight: 500; color: var(--primary); padding-top: 8px;
         }
-
-        /* --- Na Calculator Specific Styles --- */
-        #naCalculator .value-input-row {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            gap: 0 0.5rem;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-        #naCalculator .value-input-row:last-child {
-             border-bottom: none;
-        }
-
-        #naCalculator .value-input-row .label {
-            font-size: 0.875rem;
-            color: var(--muted-foreground);
-            white-space: nowrap;
-        }
-
-        #naCalculator .value-input-row .input-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-         #naCalculator .value-input-row .input-controls input {
-            width: 100%;
-            flex-grow: 1;
-         }
-
-        #naCalculator .result-box {
-            padding: 0.75rem;
-            border-radius: var(--radius);
-            background-color: var(--muted);
-            margin-bottom: 0.5rem;
-        }
-        #naCalculator .result-box .label {
-            font-weight: 600;
-            color: var(--foreground);
-            font-size: 0.875rem;
-        }
-        #naCalculator .result-box .value {
-            font-size: 1rem;
-            font-weight: 500;
-            text-align: left;
-        }
-        #naCalculator .result-box .sub-value {
-             font-size: 0.8rem;
-             color: var(--muted-foreground);
-        }
-        #naCalculator #naStatusMessage {
-            padding: 0.75rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            text-align: center;
-            font-weight: 600;
-        }
-        #naCalculator .status-below { background-color: #fff7ed; border-color: #fed7aa; color: #9a3412; } /* orange */
-        #naCalculator .status-within { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; } /* green */
-        #naCalculator .status-above { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; } /* red */
-        
-        #naCalculator .suggestion-box {
-            padding: 0.75rem;
-            border-radius: var(--radius);
-            margin-top: 0.5rem;
-        }
-        #naCalculator .suggestion-box .label { font-weight: 600; font-size: 0.875rem; }
-        #naCalculator .suggestion-box .value { font-size: 1.1rem; font-weight: bold; text-align: left;}
-        #naCalculator .suggestion-box .sub-value { font-size: 0.8rem; }
-        #naCalculator .suggestion-box .italic-info { font-size: 0.75rem; font-style: italic; margin-top: 0.25rem; }
-        
-        #naCalculator .deficit-box { background-color: #fff7ed; color: #9a3412; }
-        #naCalculator .addition-box { background-color: #e0f2fe; color: #0369a1; }
-        #naCalculator .total-box { background-color: #f0fdfa; color: #0f766e; }
 
     </style>
 </head>
@@ -753,7 +660,6 @@
         <div class="tabs">
             <button class="tab active" data-tab="nutrientBrowser">Browser</button>
             <button class="tab" data-tab="caltor">Caltor</button>
-            <button class="tab" data-tab="naCalculator">Na Cal</button>
             <button class="tab" data-tab="ckdPlanner">CKD</button>
             <button class="tab" data-tab="mealPlan">Meal Plan</button>
         </div>
@@ -875,84 +781,7 @@
             </div>
         </div>
 
-        <!-- TAB 3: SODIUM CALCULATOR (Na Cal) -->
-        <div id="naCalculator" class="tab-content">
-            <div class="card non-clickable">
-                <div class="card-content space-y-4">
-                    <h2 class="calculator-heading">🧪 Sodium Calculator (Na Cal)</h2>
-                    <p class="summary-text" style="margin-top: -1rem; margin-bottom: 1rem;">Calculate daily sodium requirement and current provision.</p>
-                    
-                    <div class="value-input-row">
-                        <label for="naCalcBodyWeight" class="label">Patient Body Weight</label>
-                        <div class="input-controls">
-                            <button class="btn" data-action="decrease" data-target="bodyWeightKg">-</button>
-                            <input type="number" id="naCalcBodyWeight" value="60" min="0" step="0.5">
-                            <button class="btn" data-action="increase" data-target="bodyWeightKg">+</button>
-                        </div>
-                        <span class="unit">kg</span>
-                    </div>
-
-                    <div class="separator"></div>
-
-                    <div>
-                        <label class="input-label" style="font-weight: 600; margin-bottom: 0.5rem;">Primary Sodium Source</label>
-                        <div class="radio-group" id="naCalcSourceGroup">
-                            <label class="radio-option">
-                                <input type="radio" name="naSource" value="calculatorSetA" class="radio-input" checked>
-                                <span>From Caltor Tab</span>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="naSource" value="manualNaCl" class="radio-input">
-                                <span>Manual NaCl (mg) Input</span>
-                            </label>
-                        </div>
-                        <div id="naCalcManualInputContainer" style="display: none; margin-top: 0.5rem;">
-                            <div class="value-input-row">
-                                <label for="naCalcManualNaCl" class="label">NaCl Input</label>
-                                <div class="input-controls">
-                                    <button class="btn" data-action="decrease" data-target="manualNaClMg">-</button>
-                                    <input type="number" id="naCalcManualNaCl" value="0" min="0" step="100">
-                                    <button class="btn" data-action="increase" data-target="manualNaClMg">+</button>
-                                </div>
-                                <span class="unit">mg</span>
-                            </div>
-                            <p class="summary-text" style="font-style: italic; font-size: 0.75rem;" id="naCalcManualNaEquivalent">Elemental Na from this source: 0 mg</p>
-                        </div>
-                        <p class="summary-text" style="font-style: italic; font-size: 0.75rem;" id="naCalcFromCaltorInfo">Na from Caltor Tab: 0 mg</p>
-                    </div>
-
-                    <div class="card non-clickable" style="margin: 0;">
-                        <div class="accordion-header" id="naCalcAccordionHeader">
-                            <span>Other Sodium Sources</span>
-                            <span class="chevron" id="naCalcAccordionChevron">▼</span>
-                        </div>
-                        <div class="accordion-content" id="naCalcAccordionContent">
-                            <!-- Other sources will be dynamically inserted here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card non-clickable">
-                <div class="card-content space-y-3">
-                    <h2 class="calculator-heading">Results</h2>
-                    <div class="result-box">
-                        <p class="label">Daily Sodium Requirement:</p>
-                        <p class="value" id="naCalcRequirementMg">0 - 0 mg</p>
-                        <p class="sub-value" id="naCalcRequirementMmol">(0 - 0 mmol)</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="label">Total Sodium Provision:</p>
-                        <p class="value" id="naCalcProvisionMg">0 mg</p>
-                        <p class="sub-value" id="naCalcProvisionMmol">(0 mmol)</p>
-                    </div>
-                    <div id="naStatusMessage">Enter body weight to calculate.</div>
-                    <div id="naSuggestionContainer"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: CKD PLANNER -->
+        <!-- TAB 3: CKD PLANNER -->
         <div id="ckdPlanner" class="tab-content">
              <div class="sticky-header">
                 <div class="header-primary">
@@ -1010,21 +839,6 @@
                             <button class="btn" onclick="ckdPlannerApp.changeValue('totalVeg', 1)">+</button>
                         </div>
                     </div>
-                    <div style="padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 12px 0;">
-                        <div class="input-label" style="margin-bottom: 8px;"><span class="icon">📦</span>Supplement Addition</div>
-                        <button class="supplement-btn" onclick="ckdPlannerApp.openSupplementModal()">
-                            <span id="ckd-selected-supplement">Select Supplement...</span><span>▼</span>
-                        </button>
-                        <div id="ckd-supplement-quantity-row" class="input-row" style="display: none; margin-top: 8px;">
-                            <div class="input-label">Quantity</div>
-                            <div class="input-controls">
-                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', -1)">-</button>
-                                <span class="input-value" id="ckdSupplementQuantity">0</span>
-                                <span class="unit" id="ckd-supplement-unit">servings</span>
-                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', 1)">+</button>
-                            </div>
-                        </div>
-                    </div>
                     <div class="input-row">
                         <div class="input-label"><span class="icon">💧</span>Total Oil</div>
                         <div class="input-controls">
@@ -1033,10 +847,28 @@
                             <button class="btn" onclick="ckdPlannerApp.changeValue('totalOil', 1)">+</button>
                         </div>
                     </div>
+                     <div style="padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px;">
+                        <div class="input-label" style="margin-bottom: 8px;"><span class="icon">📦</span>Supplement Addition</div>
+                        <button class="supplement-btn" onclick="ckdPlannerApp.openSupplementModal()">
+                            <span id="ckd-selected-supplement">Select Supplement...</span><span>▼</span>
+                        </button>
+                        <div id="ckd-supplement-quantity-row" class="input-row" style="display: none; border-bottom: none; padding-bottom: 0;">
+                            <div class="input-label">Quantity</div>
+                            <div class="input-controls">
+                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', -1)">-</button>
+                                <span class="input-value" id="ckdSupplementQuantity">0</span>
+                                <span class="unit" id="ckd-supplement-unit">servings</span>
+                                <button class="btn" onclick="ckdPlannerApp.changeValue('supplementQuantity', 1)">+</button>
+                            </div>
+                        </div>
+                        <div id="ckd-supplement-nutrition-info" style="display: none;"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="planner-controls">
+                <button class="btn" onclick="ckdPlannerApp.resetToDefaults()">Reset</button>
+                <button class="btn" onclick="ckdPlannerApp.removeFruitAndVeg()">No Fruit&Veg</button>
                 <button class="btn" onclick="ckdPlannerApp.toggleAllMeals()"><span id="ckd-collapse-text">Collapse All</span></button>
             </div>
 
@@ -1045,20 +877,21 @@
             <div class="footer-info">
                 <p><strong>Food Group Base Values (per 1 exchange/piece/serving):</strong></p>
                 <p>CHO: 44 kcal, 0.4 LBV | Fruit: 80 kcal (2 CHO eq. for display)</p>
-                <p>Vegetables (Global): 24 kcal/ex | Meat (Global): 75 kcal, 1.0 HBV/ex</p>
+                <p>Vegetables (Global): 24 kcal/ex | Meat (Global): 73 kcal, 1.0 HBV/ex</p>
                 <p>Oil (Global): 45 kcal/tsp | Egg White: 14 kcal, 3.5g protein/pc</p>
                 <p>Protein from Food Exchanges: (Total LBV ex. × 2g) + (Total HBV ex. × 7g)</p>
             </div>
         </div>
 
-        <!-- TAB 5: MEAL PLAN -->
+        <!-- TAB 4: MEAL PLAN -->
         <div id="mealPlan" class="tab-content">
              <div class="sticky-header">
                 <div class="header-primary">
                     <div id="periMainCalories">0 Kcal, 0g protein</div>
                 </div>
-                <div class="header-secondary">
+                <div class="header-secondary multi-line">
                     <div id="periExchangeDisplay">...</div>
+                    <div id="periChoSummary"></div>
                 </div>
             </div>
 
@@ -1145,7 +978,8 @@
             </div>
 
             <div class="planner-controls">
-                <button class="btn" onclick="periPlannerApp.resetToDefaults()">Reset</button>
+                <button class="btn" onclick="periPlannerApp.resetToDefaults(true)">Reset</button>
+                <button class="btn" onclick="periPlannerApp.removeFruitAndVeg()">No Fruit&Veg</button>
                 <button class="btn" onclick="periPlannerApp.toggleAllMeals()"><span id="peri-collapse-text">Collapse All</span></button>
             </div>
 
@@ -1155,8 +989,8 @@
             <div class="footer-info">
                 <p><strong>Food Group Base Values (per 1 exchange/piece/serving):</strong></p>
                 <p>CHO: 44 kcal, 1g protein | Fruit: 80 kcal, 0g protein | Veg: 24 kcal, 1g protein</p>
-                <p>Lean Meat: 55 kcal, 7g protein | Med.Fat Meat: 75 kcal, 7g protein</p>
-                <p>Egg White: 14 kcal, 3.5g protein/pc | Skim Milk: 100 kcal, 8g protein/cup</p>
+                <p>Lean Meat: 55 kcal, 7g protein | Med.Fat Meat: 73 kcal, 7g protein</p>
+                <p>Egg White: 14 kcal, 3.5g protein/pc | Skim Milk: 80 kcal, 8g protein/cup</p>
                 <p>Oil: 45 kcal, 0g protein/tsp | Sugar: 100 kcal, 0g protein/frequency</p>
             </div>
         </div>
@@ -1454,13 +1288,9 @@
         
         // --- GLOBAL APP STATE & INITIALIZATION ---
         let darkMode = false;
-        // Global variable to hold the sodium result from the Caltor tab
-        window.caltorSodiumMg = 0;
-
         const appState = {
             tabsInitialized: {
                 caltor: false,
-                naCalculator: false,
                 ckdPlanner: false,
                 mealPlan: false
             }
@@ -1485,11 +1315,9 @@
         
         function globalRefresh() {
             // Re-initialize all apps to reflect data changes
+            const caltorTabs = ['nutrientBrowser', 'caltor'];
              if(appState.tabsInitialized.caltor) {
                 nutrientCaltorApp.init();
-             }
-             if (appState.tabsInitialized.naCalculator) {
-                naCalculatorApp.init();
              }
              if(appState.tabsInitialized.ckdPlanner) {
                 ckdPlannerApp.init();
@@ -1512,9 +1340,6 @@
             if (caltorTabs.includes(tabName) && !appState.tabsInitialized.caltor) {
                 nutrientCaltorApp.init();
                 appState.tabsInitialized.caltor = true;
-            } else if (tabName === 'naCalculator' && !appState.tabsInitialized.naCalculator) {
-                naCalculatorApp.init();
-                appState.tabsInitialized.naCalculator = true;
             } else if (tabName === 'ckdPlanner' && !appState.tabsInitialized.ckdPlanner) {
                 ckdPlannerApp.init();
                 appState.tabsInitialized.ckdPlanner = true;
@@ -1529,39 +1354,6 @@
             const num = parseFloat(String(value).replace(/<|>/g, ''));
             if (isNaN(num)) return 'NA';
             return String(Number(num.toFixed(precision)));
-        }
-
-        function formatTspToFraction(value) {
-            if (value === 0) return "0 tsp";
-            const tolerance = 1.0E-6;
-            let wholePart = Math.floor(value);
-            let fracPart = value - wholePart;
-
-            if (fracPart < tolerance) {
-                return `${wholePart} tsp`;
-            }
-
-            // Common fractions for tsp
-            const fractions = {
-                "1/8": 0.125, "1/4": 0.25, "1/3": 1/3, "1/2": 0.5, "2/3": 2/3, "3/4": 0.75
-            };
-            
-            let bestMatch = "";
-            let minDiff = Infinity;
-
-            for (const [key, val] of Object.entries(fractions)) {
-                const diff = Math.abs(fracPart - val);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    bestMatch = key;
-                }
-            }
-            
-            if (minDiff < 0.01) { // If it's a close match to a common fraction
-                return (wholePart > 0 ? wholePart + " " : "") + bestMatch + " tsp";
-            }
-            
-            return `${value.toFixed(2)} tsp`; // Fallback for uncommon fractions
         }
 
         // --- NUTRIENT BROWSER & CALCULATOR APP LOGIC ---
@@ -1646,7 +1438,7 @@
                     card.addEventListener('click', () => this.showNutrientDetail(item));
                     
                     card.innerHTML = `
-                        <div class="card-content card-flex-content">
+                        <div class="card-content">
                             <div class="card-left">
                                 <div class="card-title">${item.Display_Name}</div>
                                 <div class="card-subtitle">${(item.Display_Name_Chi && item.Display_Name_Chi !== 'NA') ? item.Display_Name_Chi : ''}</div>
@@ -1685,7 +1477,7 @@
                 
                 nutrientKeys.forEach(key => {
                     const value = this.calculatePerServing(item, key);
-                    content += `<div class="grid-row"><span class="label">${nutrientLabels[key] || key}:</span><span class="value">${formatValue(value)}</span></div>`;
+                    content += `<div class="grid-row"><span class="label">${nutrientLabels[key] || key}:</span><span class="value">${value}</span></div>`;
                 });
                 
                 modalBody.innerHTML = content;
@@ -1910,12 +1702,6 @@
                     }
                     totalNutrients[key] = finalValue;
                 });
-
-                // Set global sodium value for Na Calculator and update it
-                window.caltorSodiumMg = totalNutrients['Na (mg)'] || 0;
-                if(appState.tabsInitialized.naCalculator) {
-                    naCalculatorApp.updateCalculations();
-                }
                 
                 this.updateSummary(totalNutrients, calculatedVolume, modularQuantity);
                 this.updateResultsTable(totalNutrients, calculatedVolume);
@@ -1979,337 +1765,14 @@
             }
         };
 
-        // --- SODIUM (Na) CALCULATOR APP LOGIC ---
-        const naCalculatorApp = {
-            state: {},
-            constants: {
-                ATOMIC_WEIGHT_NA: 23,
-                MOLECULAR_WEIGHT_NACL: 58.44,
-                MOLECULAR_WEIGHT_NAHCO3: 84.01,
-                NORMAL_SALINE_NA_CONC_MEQ_PER_L: 154,
-                HALF_NORMAL_SALINE_NA_CONC_MEQ_PER_L: 77,
-                OTHER_SOURCES: [
-                    { id: 'additionalNaCl', label: 'Additional NaCl', unit: 'mg', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
-                    { id: 'naHco3', label: 'NaHCO3', unit: 'mg', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
-                    { id: 'normalSaline', label: 'Normal Saline (0.9%)', unit: 'ml', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
-                    { id: 'halfNormalSaline', label: 'Half NS (0.45%)', unit: 'ml', amount: 0, naMgEquivalent: 0, naMmolEquivalent: 0 },
-                ],
-                SOURCE_STEPS: {
-                    additionalNaCl: 100,
-                    naHco3: 100,
-                    normalSaline: 50,
-                    halfNormalSaline: 50
-                }
-            },
-
-            init() {
-                this.state = {
-                    bodyWeightKg: 60,
-                    naSource: 'calculatorSetA', // 'calculatorSetA' or 'manualNaCl'
-                    manualNaClMg: 0,
-                    otherSources: JSON.parse(JSON.stringify(this.constants.OTHER_SOURCES)) // Deep copy
-                };
-                this.setupEventListeners();
-                this.renderOtherSources();
-                this.updateCalculations();
-            },
-
-            setupEventListeners() {
-                // Main inputs
-                const bwInput = document.getElementById('naCalcBodyWeight');
-                bwInput.addEventListener('input', () => this.handleStateChange('bodyWeightKg', parseFloat(bwInput.value) || 0));
-                
-                document.querySelectorAll('#naCalculator .btn[data-target="bodyWeightKg"]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const action = btn.dataset.action;
-                        const currentVal = parseFloat(bwInput.value) || 0;
-                        const newVal = action === 'increase' ? currentVal + 0.5 : Math.max(0, currentVal - 0.5);
-                        this.handleStateChange('bodyWeightKg', newVal);
-                        bwInput.value = newVal;
-                    });
-                });
-
-                // Radio buttons for source
-                document.querySelectorAll('input[name="naSource"]').forEach(radio => {
-                    radio.addEventListener('click', (e) => this.handleSourceChange(e.target.value));
-                });
-
-                // Manual NaCl input
-                const manualInput = document.getElementById('naCalcManualNaCl');
-                manualInput.addEventListener('input', () => this.handleStateChange('manualNaClMg', parseFloat(manualInput.value) || 0));
-
-                document.querySelectorAll('#naCalculator .btn[data-target="manualNaClMg"]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const action = btn.dataset.action;
-                        const currentVal = parseFloat(manualInput.value) || 0;
-                        const step = this.constants.SOURCE_STEPS.additionalNaCl;
-                        const newVal = action === 'increase' ? currentVal + step : Math.max(0, currentVal - step);
-                        this.handleStateChange('manualNaClMg', newVal);
-                        manualInput.value = newVal;
-                    });
-                });
-                
-                // Accordion
-                document.getElementById('naCalcAccordionHeader').addEventListener('click', () => this.toggleAccordion());
-            },
-
-            renderOtherSources() {
-                const container = document.getElementById('naCalcAccordionContent');
-                container.innerHTML = '';
-                this.state.otherSources.forEach(source => {
-                    const step = this.constants.SOURCE_STEPS[source.id] || 10;
-                    const row = document.createElement('div');
-                    row.className = 'value-input-row';
-                    row.innerHTML = `
-                        <label for="na-source-${source.id}" class="label">${source.label}</label>
-                        <div class="input-controls">
-                            <button class="btn" data-action="decrease" data-target="${source.id}">-</button>
-                            <input type="number" id="na-source-${source.id}" value="${source.amount}" min="0" step="${step}">
-                            <button class="btn" data-action="increase" data-target="${source.id}">+</button>
-                        </div>
-                        <span class="unit">${source.unit}</span>
-                    `;
-                    container.appendChild(row);
-
-                    const inputEl = document.getElementById(`na-source-${source.id}`);
-                    inputEl.addEventListener('input', () => this.handleOtherSourceChange(source.id, parseFloat(inputEl.value) || 0));
-                    
-                    row.querySelectorAll('.btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const action = btn.dataset.action;
-                            const currentVal = parseFloat(inputEl.value) || 0;
-                            const newVal = action === 'increase' ? currentVal + step : Math.max(0, currentVal - step);
-                            this.handleOtherSourceChange(source.id, newVal);
-                            inputEl.value = newVal;
-                        });
-                    });
-
-                    // Add info text if value > 0
-                    const infoP = document.createElement('p');
-                    infoP.className = 'summary-text';
-                    infoP.style.cssText = 'font-style: italic; font-size: 0.75rem; grid-column: 1 / -1; padding-left: 0.5rem;';
-                    infoP.id = `na-source-info-${source.id}`;
-                    container.appendChild(infoP);
-                });
-            },
-
-            toggleAccordion() {
-                const content = document.getElementById('naCalcAccordionContent');
-                const chevron = document.getElementById('naCalcAccordionChevron');
-                const isOpen = content.classList.toggle('show');
-                chevron.classList.toggle('open', isOpen);
-                document.getElementById('naCalcAccordionHeader').classList.toggle('open', isOpen);
-            },
-            
-            handleStateChange(field, value) {
-                this.state[field] = value;
-                this.updateCalculations();
-            },
-            
-            handleSourceChange(newSource) {
-                this.state.naSource = newSource;
-                const manualContainer = document.getElementById('naCalcManualInputContainer');
-                const caltorInfo = document.getElementById('naCalcFromCaltorInfo');
-                manualContainer.style.display = newSource === 'manualNaCl' ? 'block' : 'none';
-                caltorInfo.style.display = newSource === 'calculatorSetA' ? 'block' : 'none';
-                this.updateCalculations();
-            },
-
-            handleOtherSourceChange(id, amount) {
-                const source = this.state.otherSources.find(s => s.id === id);
-                if (source) {
-                    source.amount = Math.max(0, amount);
-                    this.updateCalculations();
-                }
-            },
-            
-            updateCalculations() {
-                const bw = this.state.bodyWeightKg > 0 ? this.state.bodyWeightKg : 0;
-                
-                // 1. Requirement Calculation
-                const lowerNaReqMmol = bw * 1;
-                const upperNaReqMmol = bw * 2;
-                const lowerNaReqMg = lowerNaReqMmol * this.constants.ATOMIC_WEIGHT_NA;
-                const upperNaReqMg = upperNaReqMmol * this.constants.ATOMIC_WEIGHT_NA;
-
-                // 2. Primary Source Provision
-                let primarySourceNaMg = 0;
-                if (this.state.naSource === 'calculatorSetA') {
-                    primarySourceNaMg = window.caltorSodiumMg || 0;
-                } else if (this.state.naSource === 'manualNaCl') {
-                    primarySourceNaMg = this.state.manualNaClMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                }
-                
-                // 3. Other Sources Provision
-                let otherSourcesNaMgTotal = 0;
-                this.state.otherSources.forEach(source => {
-                    let naMg = 0, naMmol = 0;
-                    const amount = source.amount > 0 ? source.amount : 0;
-                    if (amount > 0) {
-                        switch (source.id) {
-                            case 'additionalNaCl':
-                                naMg = amount * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                                naMmol = amount / this.constants.MOLECULAR_WEIGHT_NACL;
-                                break;
-                            case 'naHco3':
-                                naMg = amount * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NAHCO3);
-                                naMmol = amount / this.constants.MOLECULAR_WEIGHT_NAHCO3;
-                                break;
-                            case 'normalSaline': 
-                                naMmol = this.constants.NORMAL_SALINE_NA_CONC_MEQ_PER_L * (amount / 1000);
-                                naMg = naMmol * this.constants.ATOMIC_WEIGHT_NA;
-                                break;
-                            case 'halfNormalSaline': 
-                                naMmol = this.constants.HALF_NORMAL_SALINE_NA_CONC_MEQ_PER_L * (amount / 1000);
-                                naMg = naMmol * this.constants.ATOMIC_WEIGHT_NA;
-                                break;
-                        }
-                    }
-                    source.naMgEquivalent = naMg;
-                    source.naMmolEquivalent = naMmol;
-                    otherSourcesNaMgTotal += naMg;
-                });
-                
-                // 4. Total Provision & Status
-                const totalNaProvisionMg = primarySourceNaMg + otherSourcesNaMgTotal;
-                const totalNaProvisionMmol = totalNaProvisionMg / this.constants.ATOMIC_WEIGHT_NA;
-
-                let naStatus = 'error';
-                if (bw > 0) {
-                    if (totalNaProvisionMg < lowerNaReqMg) naStatus = 'below';
-                    else if (totalNaProvisionMg > upperNaReqMg) naStatus = 'above';
-                    else naStatus = 'within';
-                }
-                
-                // 5. Supplement Suggestion
-                let naClSupplementNeededMg = 0;
-                if (naStatus === 'below' && lowerNaReqMg > totalNaProvisionMg) {
-                    const deficitNaMg = lowerNaReqMg - totalNaProvisionMg;
-                    naClSupplementNeededMg = deficitNaMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                }
-
-                let suggestedNaClSupplementTsp = 0;
-                let suggestedNaClSupplementMg = 0;
-                let totalNaProvisionWithSupplementMg = totalNaProvisionMg;
-                let totalNaProvisionWithSupplementMmol = totalNaProvisionMmol;
-                let totalNaClEquivalentWithSupplementMg = totalNaProvisionMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-
-                if (naClSupplementNeededMg > 0) {
-                    const rawRequiredTsp = naClSupplementNeededMg / 250 / 8; // 1/8 tsp salt ≈ 250mg NaCl
-                    suggestedNaClSupplementTsp = Math.ceil(rawRequiredTsp) * 0.125; // Round up to nearest 1/8 tsp
-                    suggestedNaClSupplementMg = suggestedNaClSupplementTsp * 8 * 250; 
-
-                    const naFromSuggestedSupplementMg = suggestedNaClSupplementMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                    totalNaProvisionWithSupplementMg = totalNaProvisionMg + naFromSuggestedSupplementMg;
-                    totalNaProvisionWithSupplementMmol = totalNaProvisionWithSupplementMg / this.constants.ATOMIC_WEIGHT_NA;
-                    totalNaClEquivalentWithSupplementMg = totalNaProvisionWithSupplementMg / (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                }
-
-                const results = {
-                    lowerNaReqMg, upperNaReqMg, lowerNaReqMmol, upperNaReqMmol,
-                    totalNaProvisionMg, totalNaProvisionMmol, naStatus,
-                    suggestedNaClSupplementTsp, suggestedNaClSupplementMg,
-                    totalNaProvisionWithSupplementMg, totalNaProvisionWithSupplementMmol,
-                    totalNaClEquivalentWithSupplementMg
-                };
-                this.updateUI(results);
-            },
-            
-            updateUI(results) {
-                // Update inputs from state
-                document.getElementById('naCalcBodyWeight').value = this.state.bodyWeightKg;
-                document.getElementById('naCalcManualNaCl').value = this.state.manualNaClMg;
-                document.getElementById('naCalcFromCaltorInfo').textContent = `Na from Caltor Tab: ${formatValue(window.caltorSodiumMg || 0)} mg`;
-                const manualNaEquivalent = this.state.manualNaClMg * (this.constants.ATOMIC_WEIGHT_NA / this.constants.MOLECULAR_WEIGHT_NACL);
-                document.getElementById('naCalcManualNaEquivalent').textContent = `Elemental Na from this source: ${formatValue(manualNaEquivalent)} mg`;
-
-                this.state.otherSources.forEach(source => {
-                    const inputEl = document.getElementById(`na-source-${source.id}`);
-                    if(inputEl) inputEl.value = source.amount;
-                    const infoEl = document.getElementById(`na-source-info-${source.id}`);
-                    if(infoEl) {
-                        if (source.amount > 0) {
-                            infoEl.textContent = `Na: ${formatValue(source.naMgEquivalent)} mg (${formatValue(source.naMmolEquivalent)} mmol)`;
-                            infoEl.style.display = 'block';
-                        } else {
-                            infoEl.style.display = 'none';
-                        }
-                    }
-                });
-
-                // Update results
-                document.getElementById('naCalcRequirementMg').textContent = `${formatValue(results.lowerNaReqMg)} - ${formatValue(results.upperNaReqMg)} mg`;
-                document.getElementById('naCalcRequirementMmol').textContent = `(${formatValue(results.lowerNaReqMmol)} - ${formatValue(results.upperNaReqMmol)} mmol)`;
-                document.getElementById('naCalcProvisionMg').textContent = `${formatValue(results.totalNaProvisionMg)} mg`;
-                document.getElementById('naCalcProvisionMmol').textContent = `(${formatValue(results.totalNaProvisionMmol)} mmol)`;
-
-                // Update status message
-                const statusEl = document.getElementById('naStatusMessage');
-                statusEl.className = ''; // Clear previous classes
-                if (this.state.bodyWeightKg <= 0) {
-                    statusEl.textContent = "Enter body weight to calculate.";
-                } else {
-                    switch (results.naStatus) {
-                        case 'below':
-                            statusEl.textContent = "Sodium provision is BELOW the recommended range.";
-                            statusEl.classList.add('status-below');
-                            break;
-                        case 'within':
-                            statusEl.textContent = "Sodium provision is WITHIN the recommended range.";
-                            statusEl.classList.add('status-within');
-                            break;
-                        case 'above':
-                            statusEl.textContent = "Sodium provision is ABOVE the recommended range.";
-                            statusEl.classList.add('status-above');
-                            break;
-                    }
-                }
-
-                // Update suggestion box
-                const suggestionContainer = document.getElementById('naSuggestionContainer');
-                if (results.naStatus === 'below' && results.suggestedNaClSupplementTsp > 0) {
-                    const deficitNaMg = results.lowerNaReqMg - results.totalNaProvisionMg;
-                    suggestionContainer.innerHTML = `
-                        <div class="suggestion-box deficit-box">
-                            <p class="label">Sodium Deficit (to reach lower target):</p>
-                            <p class="value">${formatValue(deficitNaMg, 1)} mg Na</p>
-                        </div>
-                        <div class="suggestion-box addition-box">
-                            <p class="label">🧪 Suggested Salt (NaCl) Addition:</p>
-                            <p class="value">${formatTspToFraction(results.suggestedNaClSupplementTsp)}</p>
-                            <p class="sub-value">(Provides approx. ${formatValue(results.suggestedNaClSupplementMg, 0)} mg NaCl)</p>
-                            <p class="italic-info">Based on 1/8 tsp salt ≈ 250mg NaCl. Recommended addition in 1/8 tsp increments.</p>
-                        </div>
-                        <div class="suggestion-box total-box">
-                            <p class="label">Estimated Totals IF Suggested Salt is Added:</p>
-                            <p class="sub-value">New Total Na: ${formatValue(results.totalNaProvisionWithSupplementMg, 0)} mg (${formatValue(results.totalNaProvisionWithSupplementMmol, 1)} mmol)</p>
-                            <p class="sub-value">New Total NaCl Equivalent: ${formatValue(results.totalNaClEquivalentWithSupplementMg, 0)} mg NaCl</p>
-                        </div>
-                    `;
-                } else {
-                    suggestionContainer.innerHTML = '';
-                }
-            }
-        };
-
         // --- CKD PLANNER APP LOGIC ---
         const ckdPlannerApp = {
             state: {},
             
             init() {
-                this.state = {
-                    eggWhite: 0, totalMeat: 5, totalVeg: 2, totalOil: 3,
-                    selectedSupplement: null, supplementQuantity: 0,
-                    dialysisType: 'CAPD', dialysateInputs: {},
-                    meals: {
-                        bf: { cho: 5, fruit: 0 }, as: { cho: 0, fruit: 0 },
-                        l: { cho: 5, fruit: 0 }, ps: { cho: 0, fruit: 1 },
-                        d: { cho: 5, fruit: 0 }, ns: { cho: 0, fruit: 1 }
-                    }
-                };
                 this.constants = {
                     KCAL_CHO_EX: 44, LBV_PER_CHO_EX: 0.4, KCAL_FRUIT_EX: 80, CHO_EQ_PER_FRUIT_EX: 2,
-                    KCAL_VEG_EX: 24, KCAL_MEAT_EX: 75, HBV_PER_MEAT_EX: 1, KCAL_OIL_TSP: 45,
+                    KCAL_VEG_EX: 24, KCAL_MEAT_EX: 73, HBV_PER_MEAT_EX: 1, KCAL_OIL_TSP: 45,
                     KCAL_EGG_WHITE_PC: 14, PROTEIN_EGG_WHITE_PC: 3.5, PROTEIN_PER_LBV_EX: 2, PROTEIN_PER_HBV_EX: 7,
                     DIALYSATE_OPTIONS: [
                         { id: 'conc_1.5', concentrationLabel: '1.5%' }, { id: 'conc_2.5', concentrationLabel: '2.5%' },
@@ -2325,14 +1788,15 @@
                     },
                     MEAL_SECTIONS: [
                         { key: 'bf', title: 'Breakfast (B/F)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
-                        { key: 'as', title: 'AM Snacks (AS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] },
+                        { key: 'as', title: 'AM Snacks (AS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] },
                         { key: 'l', title: 'Lunch (L)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
-                        { key: 'ps', title: 'PM Snacks (PS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] },
+                        { key: 'ps', title: 'PM Snacks (PS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] },
                         { key: 'd', title: 'Dinner (D)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
-                        { key: 'ns', title: 'Night Snacks (NS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'ex' }] }
+                        { key: 'ns', title: 'Night Snacks (NS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] }
                     ]
                 };
-                
+                this.resetToDefaults(false);
+
                 document.getElementById('ckd-supplement-search').addEventListener('input', () => this.filterSupplements());
                 window.addEventListener('click', e => {
                     const modal = document.getElementById('ckd-supplement-modal');
@@ -2343,6 +1807,50 @@
                 this.generateMealSections();
                 this.populateSupplementList();
                 this.updateCalculations();
+            },
+            
+            resetToDefaults(render = true) {
+                this.state = {
+                    eggWhite: 0, totalMeat: 5, totalVeg: 2, totalOil: 3,
+                    selectedSupplement: null, supplementQuantity: 0,
+                    dialysisType: 'CAPD', dialysateInputs: {},
+                    meals: {
+                        bf: { cho: 5, fruit: 0 }, as: { cho: 0, fruit: 0 },
+                        l: { cho: 5, fruit: 0 }, ps: { cho: 0, fruit: 1 },
+                        d: { cho: 5, fruit: 0 }, ns: { cho: 0, fruit: 1 }
+                    }
+                };
+                 if (render) {
+                    this.updateInitialUI();
+                    this.initializeDialysateInputs();
+                    this.clearSupplement(false); // Clear without opening modal
+                    this.updateCalculations();
+                }
+            },
+            
+            removeFruitAndVeg() {
+                this.state.totalVeg = 0;
+                Object.keys(this.state.meals).forEach(mealKey => {
+                    if (this.state.meals[mealKey].hasOwnProperty('fruit')) {
+                        this.state.meals[mealKey].fruit = 0;
+                    }
+                });
+                this.updateInitialUI();
+                this.updateCalculations();
+            },
+            
+            updateInitialUI() {
+                // Set initial values on the UI from the state
+                document.getElementById('ckdEggWhite').textContent = this.state.eggWhite;
+                document.getElementById('ckdTotalMeat').textContent = this.state.totalMeat.toFixed(1);
+                document.getElementById('ckdTotalVeg').textContent = this.state.totalVeg;
+                document.getElementById('ckdTotalOil').textContent = this.state.totalOil;
+
+                this.constants.MEAL_SECTIONS.forEach(section => {
+                    section.fields.forEach(field => {
+                         document.getElementById(`ckd-${section.key}-${field.key}`).textContent = this.state.meals[section.key][field.key];
+                    });
+                });
             },
             
             initializeDialysateInputs() {
@@ -2427,7 +1935,7 @@
                     if (allOpen) { content.classList.remove('show'); chevron.classList.remove('open'); }
                     else { content.classList.add('show'); chevron.classList.add('open'); }
                 });
-                collapseText.textContent = allOpen ? 'Expand All Meals' : 'Collapse All Meals';
+                collapseText.textContent = allOpen ? 'Expand All' : 'Collapse All';
             },
             
             changeValue(field, delta) {
@@ -2493,11 +2001,17 @@
                 totalKcal += this.state.eggWhite * this.constants.KCAL_EGG_WHITE_PC;
                 totalKcal += this.state.totalOil * this.constants.KCAL_OIL_TSP;
                 const totalHbvExchanges = this.state.totalMeat * this.constants.HBV_PER_MEAT_EX;
+                
                 let supplementKcal = 0, supplementProtein = 0;
+                const supplementInfoEl = document.getElementById('ckd-supplement-nutrition-info');
                 if (this.state.selectedSupplement && this.state.supplementQuantity > 0) {
                     const supp = this.state.selectedSupplement;
                     supplementKcal = (parseFloat(supp.Energy) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
                     supplementProtein = (parseFloat(supp.Protein) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                    supplementInfoEl.textContent = `+ ${Math.round(supplementKcal)} Kcal, ${supplementProtein.toFixed(1)}g protein`;
+                    supplementInfoEl.style.display = 'block';
+                } else {
+                     supplementInfoEl.style.display = 'none';
                 }
 
                 let dialysateKcal = 0;
@@ -2567,13 +2081,13 @@
                 this.updateCalculations();
             },
             
-            clearSupplement() {
+            clearSupplement(openModal = true) {
                 this.state.selectedSupplement = null;
                 this.state.supplementQuantity = 0;
                 document.getElementById('ckd-selected-supplement').textContent = 'Select Supplement...';
                 document.getElementById('ckd-supplement-quantity-row').style.display = 'none';
                 document.getElementById('ckdSupplementQuantity').textContent = '0';
-                this.closeSupplementModal();
+                if(openModal) this.closeSupplementModal();
                 this.updateCalculations();
             }
         };
@@ -2582,15 +2096,14 @@
         const periPlannerApp = {
             state: {},
             init() {
-                this.resetToDefaults(false); // Initialize without re-rendering everything
-                
                 this.constants = {
                     KCAL_CHO: 44, PROTEIN_CHO: 1, KCAL_FRUIT: 80, PROTEIN_FRUIT: 0,
                     KCAL_VEG: 24, PROTEIN_VEG: 1, 
                     KCAL_LEAN_MEAT: 55, PROTEIN_LEAN_MEAT: 7,
-                    KCAL_MED_FAT_MEAT: 75, PROTEIN_MED_FAT_MEAT: 7,
+                    KCAL_MED_FAT_MEAT: 73, PROTEIN_MED_FAT_MEAT: 7, // Updated value
                     KCAL_OIL: 45, PROTEIN_OIL: 0, KCAL_EGG_WHITE: 14, PROTEIN_EGG_WHITE: 3.5,
-                    KCAL_SKIM_MILK: 100, PROTEIN_SKIM_MILK: 8, KCAL_SUGAR: 100, PROTEIN_SUGAR: 0,
+                    KCAL_SKIM_MILK: 80, PROTEIN_SKIM_MILK: 8, // Updated value
+                    KCAL_SUGAR: 100, PROTEIN_SUGAR: 0,
                     MEAL_SECTIONS: [
                         { key: 'bf', title: 'Breakfast (B/F)', icon: '🍽️', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }] },
                         { key: 'as', title: 'AM Snacks (AS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] },
@@ -2600,7 +2113,8 @@
                         { key: 'ns', title: 'Night Snacks (NS)', icon: '🍎', fields: [{ key: 'cho', label: 'CHO', unit: 'ex' }, { key: 'fruit', label: 'Fruit', unit: 'pc' }] }
                     ]
                 };
-                
+                 this.resetToDefaults(false); // Initialize state without re-rendering
+
                 document.getElementById('peri-supplement-search').addEventListener('input', () => this.filterSupplements());
                 window.addEventListener('click', e => {
                     const modal = document.getElementById('peri-supplement-modal');
@@ -2609,15 +2123,14 @@
                 
                 this.generateMealSections();
                 this.populateSupplementList();
-                this.updateCalculations();
                 this.updateInitialUI();
+                this.updateCalculations();
             },
             
             resetToDefaults(render = true) {
-                this.state = {
-                    leanMeat: 7, medFatMeat: 0,
-                    totalVeg: 3, totalOil: 3, skimMilk: 1,
-                    eggWhite: 0, sugar: 0,
+                 this.state = {
+                    skimMilk: 1, leanMeat: 7, medFatMeat: 0,
+                    totalVeg: 3, totalOil: 3, eggWhite: 0, sugar: 0,
                     selectedSupplement: null, supplementQuantity: 0,
                     meals: {
                         bf: { cho: 4, fruit: 0 }, as: { cho: 1, fruit: 0 },
@@ -2627,8 +2140,20 @@
                 };
                 if (render) {
                     this.updateInitialUI();
+                    this.clearSupplement(false);
                     this.updateCalculations();
                 }
+            },
+            
+            removeFruitAndVeg() {
+                this.state.totalVeg = 0;
+                Object.keys(this.state.meals).forEach(mealKey => {
+                    if (this.state.meals[mealKey].hasOwnProperty('fruit')) {
+                        this.state.meals[mealKey].fruit = 0;
+                    }
+                });
+                this.updateInitialUI();
+                this.updateCalculations();
             },
             
             updateInitialUI() {
@@ -2714,10 +2239,13 @@
             },
             
             updateCalculations() {
-                let totalKcal = 0, totalProtein = 0, totalMealCho = 0, totalMealFruit = 0;
-                Object.values(this.state.meals).forEach(meal => { totalMealCho += meal.cho; totalMealFruit += meal.fruit; });
-                totalKcal += totalMealCho * this.constants.KCAL_CHO;
-                totalProtein += totalMealCho * this.constants.PROTEIN_CHO;
+                let totalKcal = 0, totalProtein = 0, totalStarchCho = 0, totalMealFruit = 0;
+                Object.values(this.state.meals).forEach(meal => { 
+                    totalStarchCho += meal.cho; 
+                    totalMealFruit += meal.fruit;
+                });
+                totalKcal += totalStarchCho * this.constants.KCAL_CHO;
+                totalProtein += totalStarchCho * this.constants.PROTEIN_CHO;
                 totalKcal += totalMealFruit * this.constants.KCAL_FRUIT;
                 totalProtein += totalMealFruit * this.constants.PROTEIN_FRUIT;
 
@@ -2759,7 +2287,10 @@
                     return parts.length === 0 ? '0' : parts.join('+');
                 }).join('/');
                 const supplementIndicator = this.state.selectedSupplement && this.state.supplementQuantity > 0 ? " with Supp." : "";
+                
                 document.getElementById('periExchangeDisplay').textContent = `${choBreakdownString}, ${this.state.skimMilk} cup milk, ${totalMeatEx.toFixed(1)} ex Meat, ${this.state.eggWhite}pc Eggwhite, ${this.state.totalOil}tsp oil, ${this.state.sugar} frequency sugar${supplementIndicator}`;
+                 document.getElementById('periChoSummary').textContent = `Total CHO ex: ${totalStarchCho.toFixed(1)}`;
+
             },
             
             populateSupplementList() {
@@ -2805,13 +2336,13 @@
                 this.closeSupplementModal();
                 this.updateCalculations();
             },
-            clearSupplement() {
+            clearSupplement(openModal = true) {
                 this.state.selectedSupplement = null; this.state.supplementQuantity = 0;
                 document.getElementById('peri-selected-supplement').textContent = 'Select Supplement...';
                 document.getElementById('peri-supplement-quantity-row').style.display = 'none';
                 document.getElementById('periSupplementQuantity').textContent = '0';
                 document.getElementById('peri-supplement-nutrition-info').style.display = 'none';
-                this.closeSupplementModal();
+                if(openModal) this.closeSupplementModal();
                 this.updateCalculations();
             }
         };
