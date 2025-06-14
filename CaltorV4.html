@@ -1044,6 +1044,8 @@
             </div>
 
             <div id="ckd-meal-sections"></div>
+			
+			
 
             <div class="footer-info">
                 <p><strong>Food Group Base Values (per 1 exchange/piece/serving):</strong></p>
@@ -2500,12 +2502,22 @@
                 totalKcal += this.state.eggWhite * this.constants.KCAL_EGG_WHITE_PC;
                 totalKcal += this.state.totalOil * this.constants.KCAL_OIL_TSP;
                 const totalHbvExchanges = this.state.totalMeat * this.constants.HBV_PER_MEAT_EX;
+                                // --- START: MODIFICATION BLOCK ---
                 let supplementKcal = 0, supplementProtein = 0;
+                const supplementInfoEl = document.getElementById('ckd-supplement-nutrition-info');
                 if (this.state.selectedSupplement && this.state.supplementQuantity > 0) {
                     const supp = this.state.selectedSupplement;
                     supplementKcal = (parseFloat(supp.Energy) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
                     supplementProtein = (parseFloat(supp.Protein) / parseFloat(supp.value_base)) * parseFloat(supp.serving_Num) * this.state.supplementQuantity;
+                    
+                    // This part updates the UI
+                    supplementInfoEl.textContent = `+ ${Math.round(supplementKcal)} Kcal, ${supplementProtein.toFixed(1)}g protein`;
+                    supplementInfoEl.style.display = 'block';
+                } else {
+                     // This part hides the element if no supplement is selected
+                     supplementInfoEl.style.display = 'none';
                 }
+                // --- END: MODIFICATION BLOCK ---
 
                 let dialysateKcal = 0;
                 Object.values(this.state.dialysateInputs).forEach(input => {
