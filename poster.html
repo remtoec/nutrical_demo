@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手術前後營養指南 | Pre- & Post-Surgery Nutrition Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!--
+    Color Palette Selection: Brilliant Blues (#003F5C, #444E86, #955196, #DD5182, #FF6E54, #FFA600)
+    Narrative Plan:
+    1.  Hero Section: Strong, bilingual title and introduction.
+    2.  The "Why": Explain the risks of surgical stress using impactful visuals.
+    3.  Nutrition Toolkit: Use a two-column grid to detail Energy/Carbs and Protein needs, visualized with Chart.js charts.
+    4.  Special Instructions: Use full-width, distinct cards for Pre-op Carb Loading and Supplements, visualized with HTML/CSS flow diagrams.
+    5.  Recovery Journey: Detail post-op diet and the importance of early activity.
+    6.  Q&A Section: Address cultural myths (Soup, Eggs) using clear explanations and HTML/CSS diagrams.
+    7.  Footer: A final, clear disclaimer.
+
+    Visualization Choices & Justification (NO SVG/Mermaid Confirmation):
+    * Market Share (Conceptual) -> Goal: Compare -> Donut Chart (Chart.js/Canvas) -> Justification: Excellent for showing simple composition of a balanced diet.
+    * Key Player Positioning (Conceptual) -> Goal: Compare/Rank -> Horizontal Bar Chart (Chart.js/Canvas) -> Justification: Clearly compares and ranks different protein sources.
+    * Process Flow (Carb Loading) -> Goal: Organize -> HTML/CSS Diagram -> Justification: A simple, clear process that does not require complex graphics. Implemented with flexbox and Unicode characters.
+    * Process Flow (Q&A Soup) -> Goal: Inform -> HTML/CSS Diagram -> Justification: Visually separates the nutrient locations (liquid vs. solids) effectively using Unicode icons and text.
+    * CONFIRMATION: NEITHER Mermaid JS NOR SVG were used anywhere in the output. All diagrams and icons are implemented using structured HTML/CSS with Tailwind and standard Unicode characters.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .text-balance {
+             text-wrap: balance;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#003F5C] to-[#955196] mb-4">เสริมพลัง助您康復</h1>
+            <h2 class="text-2xl md:text-3xl font-semibold text-slate-700">手術前後飲食營養全指南</h2>
+            <p class="mt-2 text-lg font-semibold text-slate-600">A Guide to Pre- & Post-Surgery Nutrition</p>
+            <p class="max-w-3xl mx-auto mt-4 text-slate-600 text-balance">
+                手術會為身體帶來壓力，但充足的營養是您快速康復的關鍵。本指南將幫助您了解如何透過飲食為身體提供最佳支持。
+                <br>
+                The body undergoes stress during surgery, but adequate nutrition is your key to a quicker recovery. This guide will help you understand how to best support your body through diet.
+            </p>
+        </header>
+
+        <main class="space-y-12">
+
+            <section id="why-nutrition-matters">
+                <h3 class="text-2xl font-bold text-center mb-8 text-[#003F5C]">應對手術的挑戰 | Facing the Challenge of Surgery</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <div class="text-5xl mb-3">📉</div>
+                        <h4 class="text-xl font-semibold text-[#DD5182]">體重及肌肉流失</h4>
+                        <p class="font-medium text-slate-600">Weight & Muscle Loss</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <div class="text-5xl mb-3">🔥</div>
+                        <h4 class="text-xl font-semibold text-[#DD5182]">身體炎症反應</h4>
+                        <p class="font-medium text-slate-600">Inflammation</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <div class="text-5xl mb-3">🩹</div>
+                        <h4 class="text-xl font-semibold text-[#DD5182]">傷口癒合欠佳</h4>
+                        <p class="font-medium text-slate-600">Poor Wound Healing</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="nutrition-toolkit">
+                <h3 class="text-2xl font-bold text-center mb-8 text-[#003F5C]">您的營養工具箱 | Your Nutrition Toolkit</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 flex flex-col">
+                        <h4 class="text-xl font-bold text-[#444E86] mb-4">能量與碳水化合物：身體的燃料</h4>
+                        <p class="text-slate-600 mb-4">攝取足夠能量以應付手術壓力。選擇複合碳水化合物，它們富含維他命、礦物質和纖維，有助增強免疫力。<br>Consume adequate energy to cope with surgical stress. Choose complex carbohydrates, which are rich in vitamins, minerals, and fiber to support your immune system.</p>
+                        <div class="chart-container flex-grow">
+                            <canvas id="energyChart"></canvas>
+                        </div>
+                         <p class="text-sm text-slate-500 mt-2 text-center">均衡膳食概念圖 (Balanced Diet Concept)</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 flex flex-col">
+                        <h4 class="text-xl font-bold text-[#955196] mb-4">蛋白質：修復身體的基石</h4>
+                        <p class="text-slate-600 mb-4">優質蛋白質有助於細胞組織修復、傷口癒合和維持肌肉質量。請確保攝取足夠份量。<br>High-quality protein is essential for tissue repair, wound healing, and maintaining muscle mass. Ensure you get enough.</p>
+                        <div class="chart-container flex-grow">
+                            <canvas id="proteinChart"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-2 text-center">優質蛋白質來源 (Sources of High-Quality Protein)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="special-instructions">
+                 <h3 class="text-2xl font-bold text-center mb-8 text-[#003F5C]">遵從醫護人員的特別指示 | Follow Special Medical Instructions</h3>
+                <div class="space-y-8">
+                    <div class="bg-blue-50 p-6 rounded-xl shadow-lg border border-blue-200 md:col-span-2">
+                        <h4 class="text-xl font-bold text-[#003F5C] mb-4">手術前的特別準備：補充碳水化合物</h4>
+                        <p class="text-slate-600 mb-4">根據「術後加速康復療程」(ERAS) 指引，醫生或會建議您在術前飲用含碳水化合物的飲料，以降低術後壓力反應和改善血糖控制。<br>According to the Enhanced Recovery After Surgery (ERAS) protocol, your doctor may recommend a carbohydrate drink before surgery to reduce stress response and improve blood sugar control.</p>
+                        <div class="flex items-center justify-center space-x-4 p-4 bg-white rounded-lg">
+                            <span class="text-lg font-semibold text-slate-700">醫生評估<br>Doctor's Assessment</span>
+                            <span class="text-3xl text-blue-500">➡️</span>
+                             <span class="text-lg font-semibold text-slate-700">遵從指示<br>Follow Instructions</span>
+                            <span class="text-3xl text-blue-500">➡️</span>
+                             <span class="text-lg font-semibold text-slate-700">飲用飲品<br>Consume Drink</span>
+                        </div>
+                        <p class="text-center text-sm font-bold text-red-600 mt-4">請務必嚴格遵從醫生及營養師給予您的指示。<br>It is critical to strictly follow the instructions given by your doctor and dietitian.</p>
+                    </div>
+
+                    <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-green-200 md:col-span-2">
+                         <h4 class="text-xl font-bold text-green-800 mb-4">營養補充品 | Nutritional Supplements</h4>
+                         <p class="text-slate-600 mb-4">若飲食未能滿足需求，營養師或會建議您飲用營養補充品，以提供額外能量和營養素。<br>If your diet is not sufficient, a dietitian may recommend nutritional supplements to provide extra energy and nutrients.</p>
+                         <p class="font-bold text-green-700 bg-white p-4 rounded-lg">🥤 開瓶後如未能即時飲用，請把餘下的蓋好、冷藏並在24小時內飲用。<br>🥤 Once opened, any unused portion should be tightly covered, refrigerated, and used within 24 hours.</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="q-and-a">
+                <h3 class="text-2xl font-bold text-center mb-8 text-[#003F5C]">常見問題解答 | Common Questions Answered</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <h4 class="text-xl font-bold text-[#FF6E54] mb-4">問：飲用燉肉汁及老火湯有益嗎？</h4>
+                        <p class="font-semibold mb-2 text-slate-600">Q: Is drinking meat essence and long-simmering soup beneficial?</p>
+                        <p class="text-slate-600 mb-4">答：雖然湯水滿載家人愛心，但大部分蛋白質及營養素仍保留在「湯渣」中。只飲湯水，營養有限。<br>A: While these soups contain the care from family, most proteins and nutrients remain in the meat residue. The nutritional value of the liquid alone is limited.</p>
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                            <h5 class="font-bold text-orange-700">最佳食法 | The Best Way to Eat</h5>
+                            <div class="flex justify-around items-center mt-2">
+                                <div class="text-center">
+                                    <span class="text-4xl">🥣</span>
+                                    <p class="text-sm font-semibold">湯水 (風味)<br>Soup (Flavor)</p>
+                                </div>
+                                <span class="text-2xl font-bold text-orange-600">+</span>
+                                <div class="text-center">
+                                     <span class="text-4xl">🍖</span>
+                                    <p class="text-sm font-semibold">湯渣 (營養)<br>Residue (Nutrients)</p>
+                                </div>
+                            </div>
+                             <p class="text-sm mt-3 text-slate-600">建議：連湯渣一同食用，或嘗試加入雞蛋、牛奶調製的西式濃湯。<br>Suggestion: Consume the residue with the soup, or try Western-style soups prepared with eggs or milk.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                        <h4 class="text-xl font-bold text-[#FFA600] mb-4">問：進食雞蛋會令傷口難癒合嗎？</h4>
+                        <p class="font-semibold mb-2 text-slate-600">Q: Will eating eggs make wounds difficult to heal?</p>
+                        <p class="text-slate-600 mb-4">答：不會。從營養角度看，雞蛋富含完整蛋白質及多種有助傷口癒合的營養素 (維他命A, B, 鋅)，適量攝取對康復有益。<br>A: No. From a nutritional perspective, eggs are rich in complete protein and various nutrients (Vitamins A, B, Zinc) that accelerate wound healing. Moderate consumption is beneficial.</p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                             <h5 class="font-bold text-yellow-800">結論 | Conclusion</h5>
+                             <div class="flex justify-center items-center mt-2 gap-4">
+                                <span class="text-5xl">✅</span>
+                                <span class="text-5xl">🥚</span>
+                             </div>
+                             <p class="text-sm mt-3 text-slate-600">您可以放心適量食用雞蛋。如仍有疑慮，請確保從其他來源 (如肉、魚、豆類) 獲取足夠蛋白質。<br>You can feel confident eating eggs in moderation. If you still have concerns, ensure you get enough protein from other sources (like meat, fish, or beans).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 p-6 bg-gradient-to-r from-[#003F5C] to-[#444E86] rounded-xl shadow-2xl">
+            <p class="text-white font-bold text-lg">重要提示 | Important Reminder</p>
+            <p class="text-slate-200 mt-2 max-w-2xl mx-auto">
+                每個人的身體狀況和手術類型都不同。本指南只提供一般資訊。
+                <br>
+                請務必遵從您的醫生及營養師所提供的個人化飲食指引及限制。
+                <br><br>
+                Everyone's condition and surgery type is different. This guide provides general information only.
+                <br>
+                Please follow the personalized dietary instructions and/or restrictions given to you by your doctor and dietitian.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            const chartJsTooltip = {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                    return label.join(' ');
+                                } else {
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: "'Inter', 'Noto Sans TC', sans-serif"
+                            }
+                        }
+                    }
+                }
+            };
+
+            function wrapLabels(label, maxLength) {
+                if (typeof label !== 'string' || label.length <= maxLength) {
+                    return label;
+                }
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + ' ' + word).trim().length > maxLength && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                });
+                if (currentLine.length > 0) {
+                    lines.push(currentLine);
+                }
+                return lines;
+            }
+
+            const energyCtx = document.getElementById('energyChart');
+            if(energyCtx) {
+                new Chart(energyCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['穀物類 (Grains)', '蔬菜水果 (Fruits & Veggies)', '肉類/代替品 (Meat/Alt.)'],
+                        datasets: [{
+                            label: '能量來源 (Energy Source)',
+                            data: [50, 30, 20],
+                            backgroundColor: [
+                                '#FFA600',
+                                '#DD5182',
+                                '#955196',
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        ...chartJsTooltip
+                    }
+                });
+            }
+
+            const proteinCtx = document.getElementById('proteinChart');
+            if (proteinCtx) {
+                 const proteinLabels = ['魚肉 (Fish)', '雞蛋 (Eggs)', ['大豆製品', '(Soy Products)'], '雞肉 (Chicken)', '牛肉 (Beef)', ['扁豆/豆類', '(Lentils/Beans)']];
+                 const wrappedProteinLabels = proteinLabels.map(label => Array.isArray(label) ? label : wrapLabels(label, 16));
+
+                new Chart(proteinCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: wrappedProteinLabels,
+                        datasets: [{
+                            label: '蛋白質來源 (Protein Sources)',
+                            data: [95, 92, 88, 85, 80, 75],
+                            backgroundColor: [
+                                '#955196',
+                                '#a855f7',
+                                '#c084fc',
+                                '#d8b4fe',
+                                '#e9d5ff',
+                                '#f3e8ff'
+                            ],
+                            borderRadius: 5,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                         scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { display: false },
+                                grid: { display: false },
+                                border: { display: false }
+                            },
+                            y: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: {
+                                     font: {
+                                        size: 14,
+                                        family: "'Inter', 'Noto Sans TC', sans-serif"
+                                    }
+                                }
+                            }
+                        },
+                        ...chartJsTooltip,
+                        plugins: {
+                            ...chartJsTooltip.plugins,
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>
